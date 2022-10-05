@@ -34,7 +34,7 @@ import time
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
-from qgis.PyQt.QtCore import QFileInfo, QDir, Qt, QObject, pyqtSignal, QThread, QSettings, QUuid
+from qgis.PyQt.QtCore import QFileInfo, QDir, Qt, QObject, pyqtSignal, QThread, QSettings, QUuid, QVariant
 from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.core import *
 from qgis.gui import *
@@ -187,7 +187,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if browseButton_id == 1:
                 self.vfkFileLineEdit.setText(self.__fileName[0])
             else:
-                self.__vfkLineEdits['vfkL1ineEdit_{}'.format(
+                self.__vfkLineEdits['vfkLineEdit_{}'.format(
                     len(self.__vfkLineEdits))].setText(
                         self.__fileName[browseButton_id - 1]
                     )
@@ -531,6 +531,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             symbologyFile = ':/budStyle.qml'
 
         errorMsg, resultFlag = layer.loadNamedStyle(symbologyFile)
+        
+        layer.startEditing()
+        layer.addAttribute(QgsField("ListVlastnictvi",QVariant.Int))
+        layer.commitChanges()
 
         if not resultFlag:
             raise VFKWarning(u'Load style: {}'.format(errorMsg))
@@ -619,6 +623,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 u"VFK data {}/{}: {}".format(i + 1, layerCount, theLayerName))
             QgsApplication.processEvents()
             self.__mOgrDataSource.GetLayer(i).GetFeatureCount(True)
+            
             time.sleep(0.02)
 
         self.labelLoading.setText(
