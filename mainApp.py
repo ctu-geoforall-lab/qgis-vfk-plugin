@@ -290,7 +290,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             error += "Parsing error:" + search.parserErrorString()
             return fIds
         if not search.prepare(searchContext):
-            error + "Evaluation error:" + search.evalErrorString()
+            error += "Evaluation error:" + search.evalErrorString()
 
         fit = QgsFeatureIterator(layer.getFeatures())
         f = QgsFeature()
