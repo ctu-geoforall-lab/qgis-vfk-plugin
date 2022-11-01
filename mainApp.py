@@ -31,6 +31,7 @@ from qgis.PyQt import QtCore, QtGui, QtWidgets
 from re import search
 import os
 import time
+from pathlib import Path
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
@@ -180,7 +181,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if browseButton_id == 1:
                 self.vfkFileLineEdit.setText(self.__fileName[0])
             else:
-                self.__vfkLineEdits['vfkL1ineEdit_{}'.format(
+                self.__vfkLineEdits['vfkLineEdit_{}'.format(
                     len(self.__vfkLineEdits))].setText(
                         self.__fileName[browseButton_id - 1]
                     )
@@ -267,34 +268,36 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 )
                 return
             else:
-                vectorLayer.setSelectedFeatures(fIds)
+                vectorLayer.selectByIds(fIds)
 
     def __search(self, layer, searchString, error):
         """
+        Search features by expression.
 
         :type layer: QgsVectorLayer
         :type searchString: str
         :type error: str
-        :return:
+        :return: list of ids
         """
         # parse search string and build parsed tree
         search = QgsExpression(searchString)
-        rect = QgsRectangle()
         fIds = []
+
+        searchContext = QgsExpressionContext()
+        searchContext.appendScopes(QgsExpressionContextUtils.globalProjectLayerScopes(layer))
 
         if search.hasParserError():
             error += "Parsing error:" + search.parserErrorString()
             return fIds
-        if not search.prepare(layer.fields()):
+        if not search.prepare(searchContext):
             error + "Evaluation error:" + search.evalErrorString()
 
-        layer.select(rect, False)
         fit = QgsFeatureIterator(layer.getFeatures())
         f = QgsFeature()
 
         while fit.nextFeature(f):
-
-            if search.evaluate(f):
+            searchContext.setFeature(f)
+            if search.evaluate(searchContext):
                 fIds.append(f.id())
             # check if there were errors during evaluating
             if search.hasEvalError():
@@ -318,10 +321,15 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         amendment_file = self.__checkIfAmendmentFile(self.__fileName[0])
 
         # prepare name for database
-        if amendment_file:
-            new_database_name = '{}_zmeny.db'.format(os.path.basename(self.__fileName[0]).split('.')[0])
+        extension = Path(self.__fileName[0]).suffix
+        if extension == '.db':
+            new_database_name = Path(self.__fileName[0]).name
         else:
-            new_database_name = '{}_stav.db'.format(os.path.basename(self.__fileName[0]).split('.')[0])
+            new_database_name = Path(self.__fileName[0]).stem
+            if amendment_file:
+                new_database_name += '_zmeny.db'
+            else:
+                new_database_name += '_stav.db'
 
         gdal.SetConfigOption(
             'OGR_VFK_DB_NAME',
