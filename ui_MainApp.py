@@ -426,6 +426,12 @@ class Ui_MainApp(object):
         self.actionZpracujZmeny.setIcon(icon9)
         self.actionZpracujZmeny.setObjectName(_fromUtf8("actionZpracujZmeny"))
 
+        self.actionDownloadAllPosidents = QtWidgets.QAction(MainApp)
+        icon10 = QtGui.QIcon()
+        icon10.addPixmap(QtGui.QPixmap(_fromUtf8(":/downloadAllPosidents.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionDownloadAllPosidents.setIcon(icon10)
+        self.actionDownloadAllPosidents.setObjectName(_fromUtf8("actionDownloadAllPosidents"))
+        
         self.retranslateUi(MainApp)
         self.stackedWidget.setCurrentIndex(0)
         self.searchForms.setCurrentIndex(0)
@@ -486,6 +492,7 @@ class Ui_MainApp(object):
         self.actionShowHelpPage.setText(_translate("MainApp", "showHelpPage", None))
         self.actionShowHelpPage.setToolTip(_translate("MainApp", "Zobrazit nápovědu", None))
         self.actionShowHelpPage.setShortcut(_translate("MainApp", "Ctrl+H", None))
+        self.actionDownloadAllPosidents.setToolTip(_translate("MainApp", "Stáhnout označené posidenty z katastru", None))
         self.actionZpracujZmeny.setText(_translate("MainApp", "ZpracujZmeny", None))
         self.actionZpracujZmeny.setToolTip(_translate("MainApp", "Aplikuj změny na stavová data", None))
         self.actionZpracujZmeny.setShortcut(_translate("MainApp", "Ctrl+A", None))

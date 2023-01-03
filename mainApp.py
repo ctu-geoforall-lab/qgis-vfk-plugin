@@ -234,6 +234,53 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if export_succesfull:
                 self.succesfullExport("HTML")
 
+    def downloadAllPosidents(self):
+        QgsMessageLog.logMessage("Downloading posidents")
+        from pywsdp.modules import CtiOS
+        from pywsdp.base.exceptions import WSDPError
+
+        ctios = CtiOS(["WSTEST", "WSHESLO"])
+
+        # listParID = []
+        listTelID = []
+        for layer in self.__mLoadedLayers:
+            id = self.__mLoadedLayers[layer]
+            QgsMessageLog.logMessage("Layer = "+id)
+            vectorLayer = QgsProject.instance().mapLayer(id)
+            features = vectorLayer.selectedFeatures()
+            QgsMessageLog.logMessage("Feature count = "+str(len(features)))
+            for f in features:
+                # listParID.append(f["ID"])
+                listTelID.append(f["TEL_ID"])
+
+        # Set input ids from file or db
+        try:
+            #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
+            parameters_ctiOS_db = ctios.nacti_identifikatory_z_db(
+                gdal.GetConfigOption('OGR_VFK_DB_NAME'),
+                "SELECT opsub_id FROM vla WHERE TEL_ID IN ({})".format(','.join(map(str, listTelID)))
+            )
+            print(parameters_ctiOS_db)
+
+            response, response_errors = ctios.posli_pozadavek(parameters_ctiOS_db)
+            print(respose)
+            print(response_errors)
+
+            # Linda: 
+            # result, result_errors = ctios.uloz_vystup(
+            #     response, ???, OutputFormat.GdalDb, response_errors
+            # )
+            # print(result)
+            # print(result_errors)
+            
+        except WSDPError as e: # Linda: which other can be raised?
+            # show error message
+                iface.messageBar().pushWarning(
+                    'ERROR',
+                    'WSDP: {}'.format(e)
+                )
+
+
     def setSelectionChangedConnected(self, connected):
         """
 
@@ -482,6 +529,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         errorMsg, resultFlag = layer.loadNamedStyle(symbologyFile)
 
+        # layer.startEditing()
+        # layer.addAttribute(QgsField("ListVlastnictvi",QVariant.Int))
+        # layer.commitChanges()
+        
         if not resultFlag:
             raise VFKWarning(u'Load style: {}'.format(errorMsg))
 
@@ -920,6 +971,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.actionShowInfoaboutSelection.toggled.connect(self.setSelectionChangedConnected)
         self.actionShowHelpPage.triggered.connect(self.vfkBrowser.showHelpPage)
 
+        self.actionDownloadAllPosidents.triggered.connect(self.downloadAllPosidents)
+                
         self.loadVfkButton.clicked.connect(self.loadVfkButton_clicked)
 
         self.__browseButtons['browseButton_1'] = self.browseButton
@@ -951,6 +1004,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.__mBrowserToolbar.addAction(self.actionShowInfoaboutSelection)
         self.__mBrowserToolbar.addSeparator()
         self.__mBrowserToolbar.addWidget(bt)
+        self.__mBrowserToolbar.addAction(self.actionDownloadAllPosidents)       
         self.__mBrowserToolbar.addSeparator()
         self.__mBrowserToolbar.addAction(self.actionShowHelpPage)
 
