@@ -33,6 +33,7 @@ import os
 import time
 from pathlib import Path
 
+from qgis.PyQt import uic
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
 from qgis.PyQt.QtCore import QFileInfo, QDir, Qt, QObject, pyqtSignal, QThread, QSettings, QUuid
@@ -44,7 +45,6 @@ from qgis.core import QgsMessageLog
 
 from osgeo import ogr, gdal
 
-from .ui_MainApp import Ui_MainApp
 from .searchFormController import *
 from .openThread import *
 from .applyChanges import *
@@ -57,7 +57,7 @@ class VFKWarning(Warning):
     pass
 
 
-class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
+class MainApp(QDockWidget, QMainWindow):
     # signals
     goBack = pyqtSignal()
     searchOpsubByName = pyqtSignal(str)
@@ -71,6 +71,9 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
     def __init__(self, iface):
         QDockWidget.__init__(self, iface.mainWindow())
+        ui_path = os.path.dirname(os.path.abspath(__file__))
+        uic.loadUi(os.path.join(ui_path, "ui_MainApp.ui"), self)
+
         self.setupUi(self)
         self.iface = iface
 

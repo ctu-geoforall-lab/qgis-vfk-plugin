@@ -23,11 +23,10 @@
 """
 from builtins import str
 
+from qgis.PyQt import uic
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QWidget
-
-from .ui_vlastnicisearchform import *
 
 
 class VlastniciSearchForm(QWidget):
@@ -36,44 +35,45 @@ class VlastniciSearchForm(QWidget):
 
     def __init__(self, parent=None):
         super(VlastniciSearchForm, self).__init__(parent)
+        ui_path = os.path.dirname(os.path.abspath(__file__))
+        uic.loadUi(os.path.join(ui_path, "ui_vlastnicisearchform.ui"), self)
 
         # Set up the user interface from Designer.
-        self.ui = Ui_VlastniciSearchForm()
-        self.ui.setupUi(self)
+        self.setupUi(self)
 
-        self.ui.ofoCheckBox.clicked.connect(self.__vlastniciSetRcIcoEnabled)
-        self.ui.opoCheckBox.clicked.connect(self.__vlastniciSetRcIcoEnabled)
+        self.ofoCheckBox.clicked.connect(self.__vlastniciSetRcIcoEnabled)
+        self.opoCheckBox.clicked.connect(self.__vlastniciSetRcIcoEnabled)
 
-        self.ui.ofoCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
-        self.ui.opoCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
-        self.ui.sjmCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
+        self.ofoCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
+        self.opoCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
+        self.sjmCheckBox.clicked.connect(self.__vlastniciSearchEnabled)
 
     def jmeno(self):
-        return str(self.ui.jmenoLineEdit.text().strip())
+        return str(self.jmenoLineEdit.text().strip())
 
     def rcIco(self):
-        return self.ui.rcIcoLineEdit.text().strip()
+        return self.rcIcoLineEdit.text().strip()
 
     def isSjm(self):
-        return self.ui.sjmCheckBox.isChecked()
+        return self.sjmCheckBox.isChecked()
 
     def isOpo(self):
-        return self.ui.opoCheckBox.isChecked()
+        return self.opoCheckBox.isChecked()
 
     def isOfo(self):
-        return self.ui.ofoCheckBox.isChecked()
+        return self.ofoCheckBox.isChecked()
 
     def lv(self):
-        return self.ui.lvVlastniciLineEdit.text().strip()
+        return self.lvVlastniciLineEdit.text().strip()
 
     def __vlastniciSearchEnabled(self):
-        if self.ui.ofoCheckBox.isChecked() or self.ui.opoCheckBox.isChecked() or self.ui.sjmCheckBox.isChecked():
+        if self.ofoCheckBox.isChecked() or self.opoCheckBox.isChecked() or self.sjmCheckBox.isChecked():
             self.searchEnabled.emit(True)
         else:
             self.searchEnabled.emit(False)
 
     def __vlastniciSetRcIcoEnabled(self):
-        if self.ui.ofoCheckBox.isChecked() or self.ui.opoCheckBox.isChecked():
-            self.ui.rcIcoLineEdit.setEnabled(True)
+        if self.ofoCheckBox.isChecked() or self.opoCheckBox.isChecked():
+            self.rcIcoLineEdit.setEnabled(True)
         else:
-            self.ui.rcIcoLineEdit.setEnabled(False)
+            self.rcIcoLineEdit.setEnabled(False)
