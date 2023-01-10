@@ -239,20 +239,26 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         from pywsdp.modules import CtiOS
         from pywsdp.base.exceptions import WSDPError
 
-        ctios = CtiOS(["WSTEST", "WSHESLO"])
+        ctios = CtiOS([
+            self.wsdpUsername.text(),
+            self.wsdpPassword.text()
+        ])
 
         # listParID = []
         listTelID = []
         for layer in self.__mLoadedLayers:
             id = self.__mLoadedLayers[layer]
-            QgsMessageLog.logMessage("Layer = "+id)
             vectorLayer = QgsProject.instance().mapLayer(id)
             features = vectorLayer.selectedFeatures()
-            QgsMessageLog.logMessage("Feature count = "+str(len(features)))
             for f in features:
                 # listParID.append(f["ID"])
                 listTelID.append(f["TEL_ID"])
 
+        if not self.__mLoadedLayers or not features:
+            iface.messageBar().pushMessage(
+                "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Info)
+            return
+        
         # Set input ids from file or db
         try:
             #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
@@ -1046,3 +1052,6 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         # connect radio boxes
         self.rb_file.clicked.connect(self.radioButtonValue)
         self.rb_directory.clicked.connect(self.radioButtonValue)
+
+        # posidents widget
+        self.wsdpQueryButton.clicked.connect(self.downloadPosidents)
