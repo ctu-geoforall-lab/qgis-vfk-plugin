@@ -647,14 +647,7 @@
                 </sizepolicy>
                </property>
                <layout class="QGridLayout" name="gridLayout_19">
-                <item row="4" column="0">
-                 <widget class="QLabel" name="wsdpStatus">
-                  <property name="text">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0" colspan="2">
+                <item row="4" column="0" colspan="2">
                  <spacer name="verticalSpacer">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -667,7 +660,7 @@
                   </property>
                  </spacer>
                 </item>
-                <item row="5" column="0" colspan="2">
+                <item row="6" column="0" colspan="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
                    <widget class="QProgressBar" name="wsdpProgressBar">
@@ -687,6 +680,13 @@
                 </item>
                 <item row="0" column="0" colspan="2">
                  <layout class="QGridLayout" name="gridLayout_18">
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="wsdpUsername">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_7">
                     <property name="text">
@@ -697,7 +697,7 @@
                   <item row="2" column="1">
                    <widget class="QgsPasswordLineEdit" name="wsdpPassword">
                     <property name="text">
-                     <string>WSHESLO</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -708,29 +708,16 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="1">
-                   <widget class="QLineEdit" name="wsdpUsername">
-                    <property name="text">
-                     <string>WSTEST</string>
-                    </property>
-                   </widget>
-                  </item>
                  </layout>
                 </item>
-                <item row="1" column="1">
-                 <widget class="QPushButton" name="wsdpTestButton">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="wsdpStatus">
                   <property name="text">
-                   <string>Otestuj přístupové údaje CtiOS</string>
+                   <string/>
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="0">
+                <item row="2" column="0">
                  <spacer name="horizontalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -742,6 +729,13 @@
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QCheckBox" name="wsdpTrial">
+                  <property name="text">
+                   <string>Přístup na zkoušku</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>

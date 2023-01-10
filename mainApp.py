@@ -235,14 +235,13 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 self.succesfullExport("HTML")
 
     def downloadPosidents(self):
-        QgsMessageLog.logMessage("Downloading posidents")
         from pywsdp.modules import CtiOS
-        from pywsdp.base.exceptions import WSDPError
+        from pywsdp.base.exceptions import WSDPError, WSDPRequestError
 
         ctios = CtiOS([
             self.wsdpUsername.text(),
-            self.wsdpPassword.text()
-        ])
+            self.wsdpPassword.text(),
+        ], trial=True)
 
         # listParID = []
         listTelID = []
@@ -258,20 +257,45 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             iface.messageBar().pushMessage(
                 "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Info)
             return
-        
+
+        self.wsdpStatus.setText(
+            "Stahuji posidenty pro vybrané parcely a budovy (počet: {})...".format(len(features)))
+
         # Set input ids from file or db
-        try:
+#        try:
             #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
+        try:
+            sql = "SELECT * FROM opsub WHERE ID IN (SELECT opsub_id FROM vla WHERE tel_id IN ({}))".format(','.join(map(str, listTelID)))
+            # QgsMessageLog.logMessage("Seznam listTelID: {}".format(listTelID), 'VFK Plugin', level=Qgis.Info)
+            # QgsMessageLog.logMessage("DB:{} SQL: {}".format(gdal.GetConfigOption('OGR_VFK_DB_NAME'), sql),
+            #                          'VFK Plugin', level=Qgis.Info)                           
             parameters_ctiOS_db = ctios.nacti_identifikatory_z_db(
                 gdal.GetConfigOption('OGR_VFK_DB_NAME'),
-                "SELECT opsub_id FROM vla WHERE TEL_ID IN ({})".format(','.join(map(str, listTelID)))
+                sql
             )
-            print(parameters_ctiOS_db)
+        except WSDPError as e:
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Vstupní VFK data neobsahující pro vybrané prvky informace o posidentech. {}'.format(e),
+                level=Qgis.Critical)
+            return
 
+        try:
             response, response_errors = ctios.posli_pozadavek(parameters_ctiOS_db)
-            print(respose)
-            print(response_errors)
+            self.wsdpStatus.setText(
+                "Počet úspěšně zpracovaných posidentů: {} Počet chych: {})".format(
+                    len(response.keys()), len(response_errors.keys())))
+            QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), 'VFK Plugin', level=Qgis.Info)
+            if response_errors:
+                QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), 'VFK Plugin', level=Qgis.Warning)
+        except WSDPRequestError as e:
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Nelze odeslat WSDP požadavek. {}'.format(e),
+                level=Qgis.Critical)
+            return
 
+            
             # Linda: 
             # result, result_errors = ctios.uloz_vystup(
             #     response, ???, OutputFormat.GdalDb, response_errors
@@ -279,14 +303,24 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             # print(result)
             # print(result_errors)
             
-        except WSDPError as e: # Linda: which other can be raised?
-            # show error message
-                iface.messageBar().pushWarning(
-                    'ERROR',
-                    'WSDP: {}'.format(e)
-                )
+        # except WSDPError as e: # Linda: which other can be raised?
+        #     # show error message
+        #         iface.messageBar().pushWarning(
+        #             'ERROR',
+        #             'WSDP: {}'.format(e)
+        #         )
 
 
+    def setWSDPTrial(self):
+        if self.wsdpTrial.isChecked():
+            username = "WSTEST"
+            password = "WSHESLO"
+        else:
+            username = password = ""
+            
+        self.wsdpUsername.setText(username)
+        self.wsdpPassword.setText(password)
+        
     def setSelectionChangedConnected(self, connected):
         """
 
@@ -1055,3 +1089,4 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         # posidents widget
         self.wsdpQueryButton.clicked.connect(self.downloadPosidents)
+        self.wsdpTrial.stateChanged.connect(self.setWSDPTrial)
