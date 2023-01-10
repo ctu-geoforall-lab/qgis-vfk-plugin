@@ -63,3 +63,6 @@ target/
 ###
 sample_data/Export_vse.vfk
 sample_data/Export_vse_stav.db
+sample_data/602515.db
+sample_data/mapa/
+sample_data/spi_bez_jpv/
