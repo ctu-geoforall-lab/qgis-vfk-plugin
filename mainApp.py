@@ -234,7 +234,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if export_succesfull:
                 self.succesfullExport("HTML")
 
-    def downloadAllPosidents(self):
+    def downloadPosidents(self):
         QgsMessageLog.logMessage("Downloading posidents")
         from pywsdp.modules import CtiOS
         from pywsdp.base.exceptions import WSDPError
@@ -701,11 +701,11 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.searchFormMainControls.searchForms.setCurrentIndex(searchType)
 
     def switchToChanges(self):
-        """
-
-        """
         self.actionZpracujZmeny.trigger()
 
+    def switchToDownloadPosidents(self):
+        self.actionDownloadPosidents.trigger()
+        
     def succesfullExport(self, export_format):
         """
 
@@ -931,6 +931,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         actionGroup = QActionGroup(self)
         actionGroup.addAction(self.actionImport)
+        actionGroup.addAction(self.actionDownloadPosidents)        
         actionGroup.addAction(self.actionVyhledavani)
         actionGroup.addAction(self.actionZpracujZmeny)
 
@@ -938,15 +939,17 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.signalMapper = QtCore.QSignalMapper(self)
 
         self.actionImport.triggered.connect(self.signalMapper.map)
+        self.actionDownloadPosidents.triggered.connect(self.signalMapper.map)        
         self.actionVyhledavani.triggered.connect(self.signalMapper.map)
         self.actionZpracujZmeny.triggered.connect(self.signalMapper.map)
 
         # setMapping on each button to the QStackedWidget index we'd like to
         # switch to
         self.signalMapper.setMapping(self.actionImport, 0)
-        self.signalMapper.setMapping(self.actionVyhledavani, 2)
         self.signalMapper.setMapping(self.actionZpracujZmeny, 1)
-
+        self.signalMapper.setMapping(self.actionVyhledavani, 2)
+        self.signalMapper.setMapping(self.actionDownloadPosidents, 3)
+        
         # connect mapper to stackedWidget
         self.signalMapper.mapped.connect(self.stackedWidget.setCurrentIndex)
         
@@ -954,6 +957,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.vfkBrowser.switchToPanelImport.connect(self.switchToImport)
         self.vfkBrowser.switchToPanelSearch.connect(self.switchToSearch)
         self.vfkBrowser.switchToPanelChanges.connect(self.switchToChanges)
+        self.vfkBrowser.switchToPanelChanges.connect(self.switchToDownloadPosidents)
 
         # Browser toolbar
         # ---------------
@@ -971,8 +975,6 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.actionShowInfoaboutSelection.toggled.connect(self.setSelectionChangedConnected)
         self.actionShowHelpPage.triggered.connect(self.vfkBrowser.showHelpPage)
 
-        self.actionDownloadAllPosidents.triggered.connect(self.downloadAllPosidents)
-                
         self.loadVfkButton.clicked.connect(self.loadVfkButton_clicked)
 
         self.__browseButtons['browseButton_1'] = self.browseButton
@@ -992,6 +994,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         # add actions to toolbar icons
         self.__mBrowserToolbar.addAction(self.actionImport)
+        self.__mBrowserToolbar.addAction(self.actionDownloadPosidents)       
         self.__mBrowserToolbar.addAction(self.actionVyhledavani)
         self.__mBrowserToolbar.addAction(self.actionZpracujZmeny)
         self.__mBrowserToolbar.addSeparator()
@@ -1004,7 +1007,6 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.__mBrowserToolbar.addAction(self.actionShowInfoaboutSelection)
         self.__mBrowserToolbar.addSeparator()
         self.__mBrowserToolbar.addWidget(bt)
-        self.__mBrowserToolbar.addAction(self.actionDownloadAllPosidents)       
         self.__mBrowserToolbar.addSeparator()
         self.__mBrowserToolbar.addAction(self.actionShowHelpPage)
 
