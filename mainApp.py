@@ -40,7 +40,6 @@ from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.core import *
 from qgis.gui import *
 from qgis.utils import iface
-from qgis.core import QgsMessageLog
 
 from osgeo import ogr, gdal
 
@@ -198,8 +197,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.vfkFileLineEdit.setText(self.__fileName[0])
             self.settings.setValue(sender, loaded_file)
         else:
-            iface.messageBar().pushWarning(u'ERROR',
-                u'Not valid data source'
+            iface.messageBar().pushMessage(
+                'ERROR', 'Not valid data source',  level=Qgis.Critical
             )
 
         self.loadVfkButton.setEnabled(True)
@@ -263,8 +262,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             error = ''
             fIds = self.__search(vectorLayer, searchString, error)
             if error:
-                iface.messageBar().pushWarning(u'ERROR',
-                    u'In showInMap: {}'.format(error)
+                iface.messageBar().pushMessage(
+                    'ERROR', 'In showInMap: {}'.format(error), level=Qgis.Critical
                 )
                 return
             else:
@@ -301,8 +300,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 fIds.append(f.id())
             # check if there were errors during evaluating
             if search.hasEvalError():
-                iface.messageBar().pushWarning(u'ERROR',
-                    u'Evaluate error: {}'.format(error)
+                iface.messageBar().pushMessage(
+                    'ERROR', 'Evaluate error: {}'.format(error), level=Qgis.Critical
                 )
                 break
 
@@ -314,28 +313,50 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         """
         # check the source of data
         if self.__source_for_data == 'directory':
-            dir_path = self.__fileName[0]
+            dir_path = Path(self.__fileName[0]).parent
             self.__fileName = self.__findVFKFilesInDirectory(dir_path)
 
         # check if first file is amendment
         amendment_file = self.__checkIfAmendmentFile(self.__fileName[0])
 
         # prepare name for database
-        extension = Path(self.__fileName[0]).suffix
-        if extension == '.db':
-            new_database_name = Path(self.__fileName[0]).name
-        else:
-            new_database_name = Path(self.__fileName[0]).stem
-            if amendment_file:
-                new_database_name += '_zmeny.db'
-            else:
-                new_database_name += '_stav.db'
+        db_name = []
+        num_input_db = 0
+        dir_path = None
+        dir_path_defined = False
+        for fn in self.__fileName:
+            # define dir_path
+            if dir_path is None:
+                dir_path = Path(fn).parent
+            elif dir_path_defined is False and dir_path != Path(fn).parent:
+                dir_path = Path(dir_path).parent
+                dir_path_defined = True
+            # define db_name
+            if Path(fn).suffix == '.db':
+                db_name = [Path(fn).name]
+                num_input_db += 1
+            if num_input_db > 1:
+                iface.messageBar().pushMessage(
+                    'ERROR', 'Only one input SQLite database can be defined', level=Qgis.Critical
+                )
+                return
+            if num_input_db < 1:
+                fn_name = Path(fn).stem
+                if fn_name not in db_name:
+                    db_name.append(fn_name)
 
+        db_name = '_'.join(db_name)
+        if num_input_db < 1:
+            if amendment_file:
+                db_name += '_zmeny.db'
+            else:
+                db_name += '_stav.db'
+
+        db_path = str(dir_path / db_name)
         gdal.SetConfigOption(
-            'OGR_VFK_DB_NAME',
-            str(os.path.join(os.path.dirname(self.__fileName[0]), new_database_name))
+            'OGR_VFK_DB_NAME', db_path
         )
-        self.__mDataSourceName = self.__fileName[0]
+        self.__mDataSourceName = db_path
 
         QgsApplication.processEvents()
 
@@ -400,7 +421,9 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         else:
             self.__unLoadVfkLayer('BUD')
 
-        self.labelLoading.setText(u'Načítání souborů VFK bylo dokončeno.')
+        self.labelLoading.setText(
+            'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n Cesta: {}'.format(
+            gdal.GetConfigOption('OGR_VFK_DB_NAME')))
 
     def vfkFileLineEdit_textChanged(self, arg1):
         """
@@ -435,8 +458,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         composedURI = self.__mDataSourceName + "|layername=" + vfkLayerName
         layer = QgsVectorLayer(composedURI, vfkLayerName, "ogr")
         if not layer.isValid():
-            iface.messageBar().pushWarning(u'ERROR',
-                u"Layer failed to load!"
+            iface.messageBar().pushMessage(
+                'ERROR', "Layer failed to load!", level=Qgis.Critical
             )
 
         self.__mLoadedLayers[vfkLayerName] = layer.id()
