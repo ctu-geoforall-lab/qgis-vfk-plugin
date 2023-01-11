@@ -320,6 +320,11 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         amendment_file = self.__checkIfAmendmentFile(self.__fileName[0])
 
         # prepare name for database
+        # 1. single vfk file -> filename_stav.db
+        # 2. multiple vfk files
+        # 2a. all in one directory -> filename1_filename2_..._stav.db
+        # 2b. different directories filename1.parent/filename1_filename2_..._stav.db
+        # 3. one of input file is DB -> db_name
         db_name = []
         num_input_db = 0
         dir_path = None
