@@ -20,14 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import str
-from builtins import range
-from builtins import object
-
 # Import the PyQt, QGIS libraries and classes
-from qgis.PyQt import QtCore, QtGui, QtWidgets
 from re import search
 import os
 import time
@@ -36,7 +29,7 @@ from collections import OrderedDict
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
-from qgis.PyQt.QtCore import QFileInfo, QDir, Qt, QObject, pyqtSignal, QThread, QSettings, QUuid
+from qgis.PyQt.QtCore import QFileInfo, QDir, Qt, QObject, pyqtSignal, QThread, QSettings, QUuid, QSignalMapper
 from qgis.PyQt.QtSql import QSqlDatabase
 from qgis.core import *
 from qgis.gui import *
@@ -106,8 +99,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.actionZpracujZmeny.setEnabled(False)
             self.pb_nextFile.setEnabled(False)
             self.pb_nextFile.setToolTip(
-                u'Není možné načíst více souborů, verze GDAL je nižší než 2.2.0.')
-            self.actionZpracujZmeny.setToolTip(u'Zpracování změn není povoleno, verze GDAL je nižší než 2.2.0.')
+                'Není možné načíst více souborů, verze GDAL je nižší než 2.2.0.')
+            self.actionZpracujZmeny.setToolTip('Zpracování změn není povoleno, verze GDAL je nižší než 2.2.0.')
             self.groupBox.setEnabled(False)
 
         # settings
@@ -155,7 +148,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.vfkBrowser.showHelpPage()
 
         # settings
-        self.settings = QtCore.QSettings()
+        self.settings = QSettings()
 
     def browseButton_clicked(self, browseButton_id=1):
         """
@@ -170,8 +163,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if self.__gdal_version >= 2020000:
                 ext += ' *.db'
             loaded_file, __ = QFileDialog.getOpenFileName(
-                self, u'Načti soubor VFK', lastUsedDir,
-                u'Soubory podporované ovladačem VFK GDAL ({})'.format(ext)
+                self, 'Načti soubor VFK', lastUsedDir,
+                'Soubory podporované ovladačem VFK GDAL ({})'.format(ext)
             )
 
             if not loaded_file:
@@ -371,13 +364,13 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         if fileName not in self.__mLastVfkFile:
 
             self.labelLoading.setText(
-                u'Načítám data do SQLite databáze (může nějaký čas trvat...)')
+                'Načítám data do SQLite databáze (může nějaký čas trvat...)')
 
             try:
                 self.loadVfkFile(fileName)
             except VFKError as e:
                 QMessageBox.critical(
-                    self, u'Chyba', u'{}'.format(e), QMessageBox.Ok)
+                    self, 'Chyba', '{}'.format(e), QMessageBox.Ok)
                 self.enableSearch.emit(False)
                 return
 
@@ -398,7 +391,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             )
         except VFKError as e:
             QMessageBox.critical(
-                self, u'Chyba', u'{}'.format(e), QMessageBox.Ok)
+                self, 'Chyba', '{}'.format(e), QMessageBox.Ok)
             self.enableSearch.emit(False)
             return
 
@@ -504,7 +497,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         errorMsg, resultFlag = layer.loadNamedStyle(symbologyFile)
 
         if not resultFlag:
-            raise VFKWarning(u'Load style: {}'.format(errorMsg))
+            raise VFKWarning('Load style: {}'.format(errorMsg))
 
         layer.triggerRepaint()
         self.refreshLegend.emit(layer)
@@ -517,13 +510,13 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         """
         # QgsMessageLog.logMessage("(VFK) Open DB: {}".format(dbPath))
         if not QSqlDatabase.isDriverAvailable('QSQLITE'):
-            raise VFKError(u'Databázový ovladač QSQLITE není dostupný.')
+            raise VFKError('Databázový ovladač QSQLITE není dostupný.')
 
         connectionName = QUuid.createUuid().toString()
         db = QSqlDatabase.addDatabase("QSQLITE", connectionName)
         db.setDatabaseName(dbPath)
         if not db.open():
-            raise VFKError(u'Nepodařilo se otevřít databázi. ')
+            raise VFKError('Nepodařilo se otevřít databázi. ')
 
         self.setProperty("connectionName", connectionName)
 
@@ -538,7 +531,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         # overwrite database
         if fileName == self.__inputFilePath[0]:
             if self.overwriteCheckBox.isChecked():
-                # QgsMessageLog.logMessage(u'(VFK) Database will be overwritten')
+                # QgsMessageLog.logMessage('(VFK) Database will be overwritten')
                 gdal.SetConfigOption('OGR_VFK_DB_OVERWRITE', 'YES')
 
         if self.__mOgrDataSource:
@@ -553,7 +546,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         QgsApplication.processEvents()
 
         self.labelLoading.setText(
-            u'Načítám soubor {} (může nějaký čas trvat...)'.format(label_text))
+            'Načítám soubor {} (může nějaký čas trvat...)'.format(label_text))
 
         QgsApplication.processEvents()
 
@@ -575,7 +568,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         if ('PAR' not in layers_names or 'BUD' not in layers_names) and len(self.__vfkLineEdits) == 1:
             self.__dataWithoutParBud()
             self.labelLoading.setText(
-                u'Data nemohla být načtena. Vstupní soubor neobsahuje bloky PAR a BUD.')
+                'Data nemohla být načtena. Vstupní soubor neobsahuje bloky PAR a BUD.')
             QgsApplication.processEvents()
             return
 
@@ -592,7 +585,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             time.sleep(0.02)
 
         self.labelLoading.setText(
-            u'Soubor {} úspěšně načten.'.format(label_text))
+            'Soubor {} úspěšně načten.'.format(label_text))
 
         gdal.SetConfigOption('OGR_VFK_DB_OVERWRITE', 'NO')
         self.__mOgrDataSource.Destroy()
@@ -682,7 +675,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :return:
         """
         QMessageBox.information(
-            self, u'Export', u"Export do formátu {} proběhl úspěšně.".format(
+            self, 'Export', u"Export do formátu {} proběhl úspěšně.".format(
                 export_format),
                                 QMessageBox.Ok)
 
@@ -692,7 +685,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :type export_format: str
         :return:
         """
-        QMessageBox.warning(self, u'Upozornění', u"Zvolený VFK soubor neobsahuje vrstvy s geometrií (PAR, BUD), proto nemohou "
+        QMessageBox.warning(self, 'Upozornění', u"Zvolený VFK soubor neobsahuje vrstvy s geometrií (PAR, BUD), proto nemohou "
                             u"být pomocí VFK Pluginu načtena. Data je možné načíst v QGIS pomocí volby "
                             u"'Načíst vektorovou vrstvu.'", QMessageBox.Ok)
 
@@ -709,12 +702,12 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.label.setText('VFK soubory:')
 
         # new layout
-        horizontalLayout = QtWidgets.QHBoxLayout()
+        horizontalLayout = QHBoxLayout()
 
         # create new objects
         row = str(numLineEdits + 1)
-        self.__browseButtons['browseButton_' + row] = QtWidgets.QPushButton("Procházet")
-        self.__vfkLineEdits['vfkLineEdit_' + row] = QtWidgets.QLineEdit()
+        self.__browseButtons['browseButton_' + row] = QPushButton("Procházet")
+        self.__vfkLineEdits['vfkLineEdit_' + row] = QLineEdit()
 
         horizontalLayout.addWidget(self.__vfkLineEdits['vfkLineEdit_' + row])
         horizontalLayout.addWidget(self.__browseButtons['browseButton_' + row])
@@ -761,24 +754,24 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         According to pushButton name will fill in relevant lineEdit.
         :type database_type: str
         """
-        title = u'Vyber databázi'
+        title = 'Vyber databázi'
         settings = QSettings()
         lastUsedDir = str(settings.value('/UI/' + "lastVectorFileFilter" + "Dir", "."))
 
         if database_type == 'mainDb':
-            self.__databases[database_type] = QFileDialog.getOpenFileName(self, title, lastUsedDir, u'Datábaze (*.db)')
+            self.__databases[database_type] = QFileDialog.getOpenFileName(self, title, lastUsedDir, 'Datábaze (*.db)')
             if not self.__databases[database_type]:
                 return
             self.le_mainDb.setText(str(self.__databases[database_type]))
 
         elif database_type == 'amendmentDb':
-            self.__databases[database_type] = QFileDialog.getOpenFileName(self, title, lastUsedDir, u'Datábaze (*.db)')
+            self.__databases[database_type] = QFileDialog.getOpenFileName(self, title, lastUsedDir, 'Datábaze (*.db)')
             if not self.__databases[database_type]:
                 return
             self.le_amendmentDb.setText(str(self.__databases[database_type]))
 
         elif database_type == 'exportDb':
-            title = u'Zadej jméno výstupní databáze'
+            title = 'Zadej jméno výstupní databáze'
             self.__databases[database_type] = QFileDialog.getSaveFileName(self, u"Jméno výstupní databáze",
                                                                           ".db", u"Databáze (*.db)")
             if not self.__databases[database_type]:
@@ -803,7 +796,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :type table_name: str
         """
         self.progressBar_changes.setValue(iteration)
-        self.l_status.setText(u'Aplikuji změny na tabulku {}...'.format(table_name))
+        self.l_status.setText('Aplikuji změny na tabulku {}...'.format(table_name))
         QgsApplication.processEvents()
 
     def __setRangeProgressBarChanges(self, max_range):
@@ -817,13 +810,13 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         """
         """
         time.sleep(1)
-        self.l_status.setText(u'Změny byly úspěšně aplikovány.')
+        self.l_status.setText('Změny byly úspěšně aplikovány.')
         QgsApplication.processEvents()
 
     def __changesPreprocessingDatabase(self):
         """
         """
-        self.l_status.setText(u'Připravuji výstupní databázi...')
+        self.l_status.setText('Připravuji výstupní databázi...')
         QgsApplication.processEvents()
 
     def __checkIfAmendmentFile(self, file_name):
@@ -903,7 +896,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         actionGroup.addAction(self.actionZpracujZmeny)
 
         # QSignalMapper
-        self.signalMapper = QtCore.QSignalMapper(self)
+        self.signalMapper = QSignalMapper(self)
 
         self.actionImport.triggered.connect(self.signalMapper.map)
         self.actionVyhledavani.triggered.connect(self.signalMapper.map)
@@ -983,9 +976,9 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.vfkBrowser.definitionPointAvailable.connect(self.actionCuzkPage.setEnabled)
 
         # add toolTips
-        self.pb_nextFile.setToolTip(u'Přidej další soubor VFK')
-        self.parCheckBox.setToolTip(u'Načti vrstvu parcel')
-        self.budCheckBox.setToolTip(u'Načti vrstvu budov')
+        self.pb_nextFile.setToolTip('Přidej další soubor VFK')
+        self.parCheckBox.setToolTip('Načti vrstvu parcel')
+        self.budCheckBox.setToolTip('Načti vrstvu budov')
 
         # add new VFK file
         self.pb_nextFile.clicked.connect(self.__addRowToGridLayout)
