@@ -232,6 +232,9 @@
                       <bold>true</bold>
                      </font>
                     </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Kromě VFK souboru/ů lze načíst již dřive vytvořenou SQLite databázi.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
                     <property name="text">
                      <string>VFK soubor:</string>
                     </property>
@@ -272,7 +275,7 @@
                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Prohlížeč VFK načítá vstupní data do interní SQLite databáze. Tato volba umožní databázi smazat a opětovně načíst VFK do nové interní databáze. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                     </property>
                     <property name="text">
-                     <string>Přepsat interní VFK databázi</string>
+                     <string>Přepsat interní SQLite databázi</string>
                     </property>
                     <property name="checked">
                      <bool>false</bool>
