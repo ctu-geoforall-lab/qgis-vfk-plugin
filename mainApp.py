@@ -198,7 +198,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.settings.setValue(sender, loaded_file)
         else:
             iface.messageBar().pushMessage(
-                'ERROR', 'Not valid data source',  level=Qgis.Critical
+                'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical
             )
 
         self.loadVfkButton.setEnabled(True)
@@ -856,9 +856,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                         else:
                             return False
         else:
-            # fix_print_with_import
-            print('database')
             # TODO: dopsat kontrolu, zda se jedna o stavovou, nebo zmenovou databazi
+            pass
 
     def radioButtonValue(self):
         """
