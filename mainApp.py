@@ -32,6 +32,7 @@ from re import search
 import os
 import time
 from pathlib import Path
+from collections import OrderedDict
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
@@ -77,15 +78,15 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.__mLastVfkFile = []
         self.__mOgrDataSource = None
         self.__mDataSourceName = ''
-        self.__fileName = []
+        self.__inputFilePath = ['']
         self.__mLoadedLayers = {}
         self.__mDefaultPalette = self.vfkFileLineEdit.palette()
 
         # new lineEdits variables
         self.lineEditsCount = 1
 
-        self.__browseButtons = {}
-        self.__vfkLineEdits = {}
+        self.__browseButtons = OrderedDict()
+        self.__vfkLineEdits = OrderedDict()
 
         # data will be load from source according to checked radiobox
         self.__source_for_data = 'file'
@@ -176,26 +177,19 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             if not loaded_file:
                 return
 
-            self.__fileName.append(loaded_file)
-            if browseButton_id == 1:
-                self.vfkFileLineEdit.setText(self.__fileName[0])
-            else:
-                self.__vfkLineEdits['vfkLineEdit_{}'.format(
-                    len(self.__vfkLineEdits))].setText(
-                        self.__fileName[browseButton_id - 1]
-                    )
+            self.__inputFilePath[browseButton_id - 1] = loaded_file
+            self.__vfkLineEdits['vfkLineEdit_'+str(browseButton_id)].setText(loaded_file)
             self.settings.setValue(sender, os.path.dirname(loaded_file))
         elif self.__source_for_data == 'directory':
-            loaded_file = QFileDialog.getExistingDirectory(
+            loaded_dir = QFileDialog.getExistingDirectory(
                 self, u"Vyberte adresář s daty VFK", lastUsedDir
             )
-            if not loaded_file:
+            if not loaded_dir:
                 return
 
-            self.__fileName = []
-            self.__fileName.append(loaded_file)
-            self.vfkFileLineEdit.setText(self.__fileName[0])
-            self.settings.setValue(sender, loaded_file)
+            self.__inputFilePath = [loaded_dir]
+            self.vfkFileLineEdit.setText(self.__inputFilePath[0])
+            self.settings.setValue(sender, loaded_dir)
         else:
             iface.messageBar().pushMessage(
                 'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical
@@ -313,11 +307,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         """
         # check the source of data
         if self.__source_for_data == 'directory':
-            dir_path = Path(self.__fileName[0]).parent
-            self.__fileName = self.__findVFKFilesInDirectory(dir_path)
-
+            self.__inputFilePath = self.__findVFKFilesInDirectory(self.__inputFilePath[0])
+            
         # check if first file is amendment
-        amendment_file = self.__checkIfAmendmentFile(self.__fileName[0])
+        amendment_file = self.__checkIfAmendmentFile(self.__inputFilePath[0])
 
         # prepare name for database
         # 1. single vfk file -> filename_stav.db
@@ -329,7 +322,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         num_input_db = 0
         dir_path = None
         dir_path_defined = False
-        for fn in self.__fileName:
+        for fn in self.__inputFilePath:
             # define dir_path
             if dir_path is None:
                 dir_path = Path(fn).parent
@@ -365,7 +358,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         QgsApplication.processEvents()
 
-        self.importThread = OpenThread(self.__fileName)
+        self.importThread = OpenThread(self.__inputFilePath)
         self.importThread.working.connect(self.runLoadingLayer)
         if not self.importThread.isRunning():
             self.importThread.start()
@@ -391,7 +384,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.__mLastVfkFile.append(fileName)
             self.importThread.nextLayer = False
 
-            if fileName == self.__fileName[-1]:
+            if fileName == self.__inputFilePath[-1]:
                 self.loadingLayersFinished()
 
     def loadingLayersFinished(self):
@@ -540,11 +533,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :type fileName: str
         :return:
         """
-        label_text = fileName.split('/')
-        label_text = '...' + label_text[-2] + '/' + label_text[-1]
+        label_text = '...' + Path(fileName).parent.name + '/' + Path(fileName).name
 
         # overwrite database
-        if fileName == self.__fileName[0]:
+        if fileName == self.__inputFilePath[0]:
             if self.overwriteCheckBox.isChecked():
                 # QgsMessageLog.logMessage(u'(VFK) Database will be overwritten')
                 gdal.SetConfigOption('OGR_VFK_DB_OVERWRITE', 'YES')
@@ -705,8 +697,12 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                             u"'Načíst vektorovou vrstvu.'", QMessageBox.Ok)
 
     def __addRowToGridLayout(self):
-        if len(self.__vfkLineEdits) >= 5:
-            self.__maximumLineEditsReached()
+        numLineEdits = len(self.__vfkLineEdits)
+        if numLineEdits >= 5:
+            iface.messageBar().pushMessage(
+                'Upozornění', "Byl dosažen maximální počet ({}) VFK souborů pro zpracování. "
+                "Načítání dalších souborů není povoleno!".format(numLineEdits),
+                level=Qgis.Warning)
             return
 
         # update label
@@ -716,19 +712,15 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         horizontalLayout = QtWidgets.QHBoxLayout()
 
         # create new objects
-        self.__browseButtons['browseButton_{}'.format(
-            len(self.__vfkLineEdits) + 1)] = QtWidgets.QPushButton(u"Procházet")
-        self.__vfkLineEdits['vfkLineEdit_{}'.format(
-            len(self.__vfkLineEdits) + 1)] = QtWidgets.QLineEdit()
+        row = str(numLineEdits + 1)
+        self.__browseButtons['browseButton_' + row] = QtWidgets.QPushButton("Procházet")
+        self.__vfkLineEdits['vfkLineEdit_' + row] = QtWidgets.QLineEdit()
 
-        horizontalLayout.addWidget(self.__vfkLineEdits[
-                                   'vfkLineEdit_{}'.format(len(self.__vfkLineEdits))])
-        horizontalLayout.addWidget(self.__browseButtons[
-                                   'browseButton_{}'.format(len(self.__vfkLineEdits))])
+        horizontalLayout.addWidget(self.__vfkLineEdits['vfkLineEdit_' + row])
+        horizontalLayout.addWidget(self.__browseButtons['browseButton_' + row])
 
         # number of lines in gridLayout
-        rows_count = self.gridLayout_12.rowCount(
-        )  # count of rows in gridLayout
+        rows_count = self.gridLayout_12.rowCount()  # count of rows in gridLayout
 
         # export objects from gridLayout
         item_label = self.gridLayout_12.itemAtPosition(rows_count - 3, 0)
@@ -757,15 +749,12 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.gridLayout_12.addItem(item_settings, rows_count, 0)
         self.gridLayout_12.addItem(item_rewrite_db, rows_count, 1)
 
-        self.__browseButtons['browseButton_{}'.format(len(self.__vfkLineEdits))].clicked.\
-            connect(lambda: self.browseButton_clicked(
-                int('{}'.format(len(self.__vfkLineEdits)))))
+        self.__browseButtons['browseButton_' + row].clicked.connect(
+            lambda: self.browseButton_clicked(int(row)))
 
-    def __maximumLineEditsReached(self):
-        QMessageBox.information(self, u'Upozornění', u"Byl dosažen maximální počet ({}) VFK souboru pro zpracování."
-                                                     u"\nNačítání dalších souborů není povoleno!".
-                                format(self.lineEditsCount), QMessageBox.Ok)
-
+        # add empty filePath
+        self.__inputFilePath.append('')
+                
     def browseDb_clicked(self, database_type):
         """
         Method run dialog for select database in widget with changes.
@@ -864,7 +853,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         Check which radio button is checked
         """
         self.vfkFileLineEdit.setText('')
-        self.__fileName = []
+        self.__inputFilePath = ['']
         self.loadVfkButton.setEnabled(False)
 
         if self.rb_file.isChecked():
@@ -874,18 +863,21 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         elif self.rb_directory.isChecked():
             self.__source_for_data = 'directory'
             self.pb_nextFile.hide()
-            self.label.setText(u'Adresář:')
+            self.label.setText('Adresář:')
 
             # delete
             if len(self.__browseButtons) > 1:
                 for i, button in enumerate(self.__browseButtons):
                     if i > 0:
                         self.__browseButtons[button].hide()
-
+                self.__browseButtons = OrderedDict([self.__browseButtons.popitem(last=False)])
+                
             if len(self.__vfkLineEdits) > 1:
                 for i, le in enumerate(self.__vfkLineEdits):
                     if i > 0:
                         self.__vfkLineEdits[le].hide()
+                self.__vfkLineEdits = OrderedDict([self.__vfkLineEdits.popitem(last=False)])
+                
 
     def __findVFKFilesInDirectory(self, dir_path):
         """
@@ -951,7 +943,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         self.__browseButtons['browseButton_1'] = self.browseButton
         self.__browseButtons['browseButton_1'].clicked.connect(
-            lambda: self.browseButton_clicked(int('{}'.format(len(self.__vfkLineEdits)))))
+            lambda: self.browseButton_clicked(1))
 
         self.__vfkLineEdits['vfkLineEdit_1'] = self.vfkFileLineEdit
 
