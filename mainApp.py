@@ -185,7 +185,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.settings.setValue(sender, loaded_dir)
         else:
             iface.messageBar().pushMessage(
-                'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical
+                'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical, duration=10
             )
 
         self.loadVfkButton.setEnabled(True)
@@ -221,25 +221,30 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 self.succesfullExport("HTML")
 
     def downloadPosidents(self):
-        # listParID = []
-        listTelID = []
+        if not self.wsdpUsername.text() or not self.wsdpPassword.text():
+            iface.messageBar().pushMessage(
+                "Stažení posidentů přerušeno", "Vyplňte přístupové údaje", level=Qgis.Critical, duration=10)
+            return
+            
+        # listParId = []
+        listTelId = []
         for layer in self.__mLoadedLayers:
             id = self.__mLoadedLayers[layer]
             vectorLayer = QgsProject.instance().mapLayer(id)
             features = vectorLayer.selectedFeatures()
             for f in features:
-                # listParID.append(f["ID"])
-                listTelID.append(f["TEL_ID"])
+                # listParId.append(f["ID"])
+                listTelId.append(f["TEL_ID"])
 
         if not self.__mLoadedLayers or not features:
             iface.messageBar().pushMessage(
-                "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Info)
+                "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Warning, duration=10)
             return
 
         self.wsdpStatus.setText(
             "Stahuji posidenty pro vybrané parcely a budovy (počet: {})...".format(len(features)))
         
-        self.downloadPosidentsThread = DownloadPosidentsThread(self.__inputFilePath)
+        self.downloadPosidentsThread = DownloadPosidentsThread(listTelId)
         self.downloadPosidentsThread.working.connect(self.runDownloadingPosidents)
         if not self.downloadPosidentsThread.isRunning():
             self.downloadPosidentsThread.start()
@@ -253,54 +258,49 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.wsdpPassword.text(),
         ], trial=True)
 
-        # Set input ids from file or db
-#        try:
-            #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
+        #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
         try:
             sql = "SELECT * FROM opsub WHERE ID IN (SELECT opsub_id FROM vla WHERE tel_id IN ({}))".format(','.join(map(str, listTelId)))
-            # QgsMessageLog.logMessage("Seznam listTelID: {}".format(listTelID), 'VFK Plugin', level=Qgis.Info)
-            # QgsMessageLog.logMessage("DB:{} SQL: {}".format(gdal.GetConfigOption('OGR_VFK_DB_NAME'), sql),
-            #                          'VFK Plugin', level=Qgis.Info)                           
             parameters_ctiOS_db = ctios.nacti_identifikatory_z_db(
                 gdal.GetConfigOption('OGR_VFK_DB_NAME'),
                 sql
             )
         except WSDPError as e:
+            QgsMessageLog.logMessage("DB:{} SQL: {}".format(gdal.GetConfigOption('OGR_VFK_DB_NAME'), sql),
+                                     level=Qgis.Info)                           
             iface.messageBar().pushMessage(
                 'ERROR',
                 'Vstupní VFK data neobsahující pro vybrané prvky informace o posidentech. {}'.format(e),
-                level=Qgis.Critical)
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
             return
 
         try:
             response, response_errors = ctios.posli_pozadavek(parameters_ctiOS_db)
             self.wsdpStatus.setText(
-                "Počet úspěšně zpracovaných posidentů: {} Počet chych: {})".format(
-                    len(response.keys()), len(response_errors.keys())))
-            QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), 'VFK Plugin', level=Qgis.Info)
+                "Počet úspěšně zpracovaných posidentů: {} Počet chych: {} {}".format(
+                    len(response.keys()), len(response_errors.keys()), '(více v zprávách výpisů)' if response_errors else ''))
+            # QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), level=Qgis.Info)
             if response_errors:
-                QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), 'VFK Plugin', level=Qgis.Warning)
+                QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), level=Qgis.Warning)
         except WSDPRequestError as e:
             iface.messageBar().pushMessage(
                 'ERROR',
                 'Nelze odeslat WSDP požadavek. {}'.format(e),
-                level=Qgis.Critical)
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
             return
 
-            
-            # Linda: 
-            # result, result_errors = ctios.uloz_vystup(
-            #     response, ???, OutputFormat.GdalDb, response_errors
-            # )
-            # print(result)
-            # print(result_errors)
-            
-        # except WSDPError as e: # Linda: which other can be raised?
-        #     # show error message
-        #         iface.messageBar().pushWarning(
-        #             'ERROR',
-        #             'WSDP: {}'.format(e)
-        #         )
+        try:
+            ctios.uloz_vystup_aktualizuj_db(
+                response
+            )
+        except WSDPError as e:
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Nepodařilo se aktualizovat interní DB. {}'.format(e),
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
 
     def setWSDPTrial(self):
         if self.wsdpTrial.isChecked():
@@ -342,7 +342,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             fIds = self.__search(vectorLayer, searchString, error)
             if error:
                 iface.messageBar().pushMessage(
-                    'ERROR', 'In showInMap: {}'.format(error), level=Qgis.Critical
+                    'ERROR', 'In showInMap: {}'.format(error), level=Qgis.Critical, duration=10
                 )
                 return
             else:
@@ -380,7 +380,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             # check if there were errors during evaluating
             if search.hasEvalError():
                 iface.messageBar().pushMessage(
-                    'ERROR', 'Evaluate error: {}'.format(error), level=Qgis.Critical
+                    'ERROR', 'Evaluate error: {}'.format(error), level=Qgis.Critical, duration=10
                 )
                 break
 
@@ -420,7 +420,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 num_input_db += 1
             if num_input_db > 1:
                 iface.messageBar().pushMessage(
-                    'ERROR', 'Only one input SQLite database can be defined', level=Qgis.Critical
+                    'ERROR', 'Only one input SQLite database can be defined', level=Qgis.Critical, duration=10
                 )
                 return
             if num_input_db < 1:
@@ -542,7 +542,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         layer = QgsVectorLayer(composedURI, vfkLayerName, "ogr")
         if not layer.isValid():
             iface.messageBar().pushMessage(
-                'ERROR', "Layer failed to load!", level=Qgis.Critical
+                'ERROR', "Layer failed to load!", level=Qgis.Critical, duration=10
             )
 
         self.__mLoadedLayers[vfkLayerName] = layer.id()
@@ -791,7 +791,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             iface.messageBar().pushMessage(
                 'Upozornění', "Byl dosažen maximální počet ({}) VFK souborů pro zpracování. "
                 "Načítání dalších souborů není povoleno!".format(numLineEdits),
-                level=Qgis.Warning)
+                level=Qgis.Warning, duration=10)
             return
 
         # update label
