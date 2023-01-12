@@ -39,7 +39,7 @@ from osgeo import ogr, gdal
 
 from .ui_MainApp import Ui_MainApp
 from .searchFormController import *
-from .openThread import *
+from .openThread import ImportVfkThread, DownloadPosidentsThread
 from .applyChanges import *
 
 class VFKError(Exception):
@@ -221,14 +221,6 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 self.succesfullExport("HTML")
 
     def downloadPosidents(self):
-        from pywsdp.modules import CtiOS
-        from pywsdp.base.exceptions import WSDPError, WSDPRequestError
-
-        ctios = CtiOS([
-            self.wsdpUsername.text(),
-            self.wsdpPassword.text(),
-        ], trial=True)
-
         # listParID = []
         listTelID = []
         for layer in self.__mLoadedLayers:
@@ -246,12 +238,26 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         self.wsdpStatus.setText(
             "Stahuji posidenty pro vybrané parcely a budovy (počet: {})...".format(len(features)))
+        
+        self.downloadPosidentsThread = DownloadPosidentsThread(self.__inputFilePath)
+        self.downloadPosidentsThread.working.connect(self.runDownloadingPosidents)
+        if not self.downloadPosidentsThread.isRunning():
+            self.downloadPosidentsThread.start()
+
+    def runDownloadingPosidents(self, listTelId):
+        from pywsdp.modules import CtiOS
+        from pywsdp.base.exceptions import WSDPError, WSDPRequestError
+
+        ctios = CtiOS([
+            self.wsdpUsername.text(),
+            self.wsdpPassword.text(),
+        ], trial=True)
 
         # Set input ids from file or db
 #        try:
             #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
         try:
-            sql = "SELECT * FROM opsub WHERE ID IN (SELECT opsub_id FROM vla WHERE tel_id IN ({}))".format(','.join(map(str, listTelID)))
+            sql = "SELECT * FROM opsub WHERE ID IN (SELECT opsub_id FROM vla WHERE tel_id IN ({}))".format(','.join(map(str, listTelId)))
             # QgsMessageLog.logMessage("Seznam listTelID: {}".format(listTelID), 'VFK Plugin', level=Qgis.Info)
             # QgsMessageLog.logMessage("DB:{} SQL: {}".format(gdal.GetConfigOption('OGR_VFK_DB_NAME'), sql),
             #                          'VFK Plugin', level=Qgis.Info)                           
@@ -295,7 +301,6 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         #             'ERROR',
         #             'WSDP: {}'.format(e)
         #         )
-
 
     def setWSDPTrial(self):
         if self.wsdpTrial.isChecked():
@@ -438,7 +443,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         QgsApplication.processEvents()
 
-        self.importThread = OpenThread(self.__inputFilePath)
+        self.importThread = ImportVfkThread(self.__inputFilePath)
         self.importThread.working.connect(self.runLoadingLayer)
         if not self.importThread.isRunning():
             self.importThread.start()
