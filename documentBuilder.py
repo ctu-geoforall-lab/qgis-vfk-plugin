@@ -1256,8 +1256,10 @@ class DocumentBuilder(object):
             if not ok:
                 continue
 
-            self.__mDocument.item(self.makeLongDescription(
-                id, VfkTableModel.OpravnenyPovinny.OPOsoba))
+            print(self.makeJmeno(model, 0, hyperlink=False), len(self.makeJmeno(model, 0, hyperlink=False)))
+            if self.makeJmeno(model, 0, hyperlink=False):
+                self.__mDocument.item(self.makeLongDescription(
+                    id, VfkTableModel.OpravnenyPovinny.OPOsoba))
 
         self.__mDocument.endItemize()
 
@@ -1540,7 +1542,7 @@ class DocumentBuilder(object):
             adresa.append(psc)
         return ", ".join(adresa)
 
-    def makeJmeno(self, model, row):
+    def makeJmeno(self, model, row, hyperlink=True):
         """
 
         :type model: VfkTableModel
@@ -1555,8 +1557,11 @@ class DocumentBuilder(object):
             jmeno += model.value(row, "opsub_titul_za_jmenem")
         else:
             jmeno += model.value(row, "opsub_nazev")
+        jmeno = jmeno.strip()
 
-        return self.__mDocument.link("showText?page=opsub&id={}".format(model.value(row, "opsub_id")), jmeno)
+        if hyperlink:
+            return self.__mDocument.link("showText?page=opsub&id={}".format(model.value(row, "opsub_id")), jmeno)
+        return jmeno
 
     def makeIdentifikator(self, model, row):
         """
