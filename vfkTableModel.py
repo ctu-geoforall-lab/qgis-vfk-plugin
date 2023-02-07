@@ -415,7 +415,7 @@ class VfkTableModel(QSqlQueryModel):
                 "FROM jpv " \
                 "JOIN {} ON {}.id = jpv.{}_id_{} " \
                 "JOIN typrav ON typrav.kod = jpv.typrav_kod " \
-                "WHERE {}.id = {}{};".format(columns, table, table, table, columnNameSuffix,
+                "WHERE {}.id = \"{}\"{};".format(columns, table, table, table, columnNameSuffix,
                                              table, id, "" if not where else " AND {}".format(where))
 
         return self.__evaluate(query)

@@ -278,8 +278,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         try:
             response, response_errors = ctios.posli_pozadavek(parameters_ctiOS_db)
             self.wsdpStatus.setText(
-                "Počet úspěšně zpracovaných posidentů: {} Počet chych: {} {}".format(
-                    len(response.keys()), len(response_errors.keys()), '(více v zprávách výpisů)' if response_errors else ''))
+                "Počet úspěšně zpracovaných posidentů: {}/{} {}".format(
+                    len(response.keys()) - len(response_errors.keys()),
+                    len(response.keys()),
+                    '(více v zprávách výpisů)' if response_errors else ''))
             # QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), level=Qgis.Info)
             if response_errors:
                 QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), level=Qgis.Warning)
