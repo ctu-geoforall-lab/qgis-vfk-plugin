@@ -1250,18 +1250,23 @@ class DocumentBuilder(object):
 
         self.__mCurrentPageParIds = ids
 
+        count = 0
         for id in ids:
             model = VfkTableModel(self.__mConnectionName)
             ok = model.opravnenySubjekt(id, True)
             if not ok:
                 continue
 
-            print(self.makeJmeno(model, 0, hyperlink=False), len(self.makeJmeno(model, 0, hyperlink=False)))
             if self.makeJmeno(model, 0, hyperlink=False):
                 self.__mDocument.item(self.makeLongDescription(
                     id, VfkTableModel.OpravnenyPovinny.OPOsoba))
+                count += 1
 
         self.__mDocument.endItemize()
+
+        if count == 0:
+            self.__mDocument.text(
+                "Seznam osob získejte v záložce \"Stáhnout posidenty pro vybrané budovy a parcely\".")
 
     def pageSeznamBudov(self, ids):
         """

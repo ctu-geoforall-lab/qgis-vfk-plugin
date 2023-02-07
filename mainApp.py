@@ -257,6 +257,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.wsdpUsername.text(),
             self.wsdpPassword.text(),
         ], trial=True)
+        self.wsdpProgressBar.setValue(0)
 
         #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
         try:
@@ -282,6 +283,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                     len(response.keys()) - len(response_errors.keys()),
                     len(response.keys()),
                     '(více v zprávách výpisů)' if response_errors else ''))
+            self.wsdpProgressBar.setValue(100)
             # QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), level=Qgis.Info)
             if response_errors:
                 QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), level=Qgis.Warning)
