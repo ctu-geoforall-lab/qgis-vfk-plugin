@@ -20,18 +20,16 @@
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import absolute_import
-from builtins import object
+import os.path
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, qDebug
 from qgis.PyQt.QtWidgets import QAction, QToolButton, QMenu
 from qgis.PyQt.QtGui import QIcon
+
 # Initialize Qt resources from file resources.py
-from . import resources
+from .resources import *
 # Import the code for the dialog
 from .mainApp import MainApp
-import os.path
-
 
 class vfkPlugin(object):
 
@@ -67,7 +65,7 @@ class vfkPlugin(object):
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&VFK')
+        self.menu = self.tr('&VFK')
         # TODO: We are going to let the user set this up in a future iteration
 
         # add plugin icon into plugin toolbar
