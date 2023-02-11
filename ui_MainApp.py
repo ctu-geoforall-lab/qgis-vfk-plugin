@@ -610,4 +610,4 @@ from .jednotkysearchform import JednotkySearchForm
 from .parcelysearchform import ParcelySearchForm
 from .vfktextbrowser import VfkTextBrowser
 from .vlastnicisearchform import VlastniciSearchForm
-from . import resources_rc
+from . import resources

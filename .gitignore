@@ -62,3 +62,6 @@ target/
 
 ###
 sample_data/*.db
+pywsdp/
+zip_build/
+*~

@@ -21,11 +21,12 @@
  ***************************************************************************/
 """
 # Import the PyQt, QGIS libraries and classes
-from re import search
 import os
 import time
+import sys
 from pathlib import Path
 from collections import OrderedDict
+from re import search
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
@@ -41,6 +42,8 @@ from .ui_MainApp import Ui_MainApp
 from .searchFormController import *
 from .openThread import ImportVfkThread, DownloadPosidentsThread
 from .applyChanges import *
+
+sys.path.insert(0, str(Path(__file__).parent)) # needed for pywsdp import
 
 class VFKError(Exception):
     pass
@@ -175,7 +178,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.settings.setValue(sender, os.path.dirname(loaded_file))
         elif self.__source_for_data == 'directory':
             loaded_dir = QFileDialog.getExistingDirectory(
-                self, u"Vyberte adresář s daty VFK", lastUsedDir
+                self, "Vyberte adresář s daty VFK", lastUsedDir
             )
             if not loaded_dir:
                 return
@@ -204,7 +207,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
     def latexExport(self):
         fileName, __ = QFileDialog.getSaveFileName(
-            self, u"Jméno exportovaného souboru", ".tex", "LaTeX (*.tex)")
+            self, "Jméno exportovaného souboru", ".tex", "LaTeX (*.tex)")
         if fileName:
             export_succesfull = self.vfkBrowser.exportDocument(
                 self.vfkBrowser.currentUrl(), fileName, self.vfkBrowser.ExportFormat.Latex)
@@ -213,7 +216,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
     def htmlExport(self):
         fileName, __ = QFileDialog.getSaveFileName(
-            self, u"Jméno exportovaného souboru", ".html", "HTML (*.html)")
+            self, "Jméno exportovaného souboru", ".html", "HTML (*.html)")
         if fileName:
             export_succesfull = self.vfkBrowser.exportDocument(
                 self.vfkBrowser.currentUrl(), fileName, self.vfkBrowser.ExportFormat.Html)
@@ -509,7 +512,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.__unLoadVfkLayer('BUD')
 
         self.labelLoading.setText(
-            'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n Cesta: {}'.format(
+            'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n{}'.format(
             gdal.GetConfigOption('OGR_VFK_DB_NAME')))
 
     def vfkFileLineEdit_textChanged(self, arg1):
@@ -535,7 +538,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :type vfkLayerName: str
         :return:
         """
-        # QgsMessageLog.logMessage(u"(VFK) Loading vfk layer {}".format(vfkLayerName))
+        # QgsMessageLog.logMessage("VFK) Loading vfk layer {}".format(vfkLayerName))
         if vfkLayerName in self.__mLoadedLayers:
             # QgsMessageLog.logMessage(
             #     "(VFK) Vfk layer {} is already loaded".format(vfkLayerName)
@@ -655,7 +658,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         if not self.__mOgrDataSource:
             raise VFKError(
-                u"Nelze otevřít VFK soubor '{}' jako platný OGR datasource.".format(fileName))
+                "Nelze otevřít VFK soubor '{}' jako platný OGR datasource.".format(fileName))
 
         layerCount = self.__mOgrDataSource.GetLayerCount()
 
