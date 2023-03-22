@@ -239,7 +239,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 # listParId.append(f["ID"])
                 listTelId.append(f["TEL_ID"])
 
-        if not self.__mLoadedLayers or not features:
+        if not self.__mLoadedLayers or not listTelId:
             iface.messageBar().pushMessage(
                 "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Warning, duration=10)
             return
