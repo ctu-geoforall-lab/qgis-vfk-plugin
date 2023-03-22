@@ -259,7 +259,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         ctios = CtiOS([
             self.wsdpUsername.text(),
             self.wsdpPassword.text(),
-        ], trial=True)
+        ], trial=self.wsdpTrial.isChecked())
         self.wsdpProgressBar.setValue(0)
 
         #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
