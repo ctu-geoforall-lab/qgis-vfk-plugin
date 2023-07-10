@@ -28,7 +28,7 @@ homepage=https://ctu-geoforall-lab.github.io/qgis-vfk-plugin/
 tracker=https://github.com/ctu-geoforall-lab/qgis-vfk-plugin/issues
 repository=https://github.com/ctu-geoforall-lab/qgis-vfk-plugin.git
 category=Plugins
-icon=vfkPluginIcon.png
+icon=data/vfkPluginIcon.png
 # experimental flag
 experimental=True
 
