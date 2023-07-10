@@ -12,12 +12,18 @@ Verze 2.x (Python):
 
 Dokumentace: Anna Zemánková
 
-`Laboratoř GeoForAll
-<http://geomatics.fsv.cvut.cz/research/geoforall/>`__, Fakulta
-stavební, České vysoké učení technické v Praze
+Laboratoř GeoForAll, Fakulta stavební, České vysoké učení technické v
+Praze
 
 Vedoucí projektu: Martin Landa
 
+.. note:: První prototyp (verze 1.x) byl napsán v jazyce C++, ve verzi
+          2.x byl portován do jazyka Python. K datům v souborech
+          přistupuje plugin pomocí `knihovny GDAL
+          <http://freegis.fsv.cvut.cz/gwiki/VFK_/_GDAL>`__. Tato
+          dokumentace čerpá z `wiki projektu
+          <http://freegis.fsv.cvut.cz/gwiki/VFK_/_QGIS_plugin>`__, kde
+          najdete další informace především historického charakteru.
 
 Licence
 ^^^^^^^
