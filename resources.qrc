@@ -13,5 +13,6 @@
     <file alias="selectPar.png">data/selectPar.png</file>
     <file alias="showInfo.png">data/showInfo.png</file>
     <file alias="vfkPlugin.png">data/vfkPlugin.png</file>
+    <file alias="downloadAllPosidents.png">data/downloadAllPosidents.png</file>
   </qresource>
 </RCC>

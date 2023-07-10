@@ -21,19 +21,17 @@
  ***************************************************************************/
 """
 
-from qgis.PyQt.QtCore import QThread, pyqtSignal, qDebug
+from qgis.PyQt.QtCore import QThread, pyqtSignal
 
 
-class OpenThread(QThread):
+class ImportVfkThread(QThread):
     working = pyqtSignal(str)
-    finished = pyqtSignal()
     nextLayer = True
 
     def __init__(self, vfk_files):
         """
         Class for using multi-thread import of layers
-        :type fileName: str
-        :return:
+        :type vfk_files: list of VFK files to be imported
         """
         QThread.__init__(self)
 
@@ -43,9 +41,27 @@ class OpenThread(QThread):
         self.wait()
 
     def run(self):
-        for i, vfkFile in enumerate(self.vfk_files):
+        for vfkFile in self.vfk_files:
             self.working.emit(vfkFile)
             self.nextLayer = True
 
             while self.nextLayer:
                 self.sleep(1)
+
+class DownloadPosidentsThread(QThread):
+    working = pyqtSignal(list)
+
+    def __init__(self, listTelId):
+        """
+        Class for using multi-thread import of layers
+        :type vfk_files: list of VFK files to be imported
+        """
+        QThread.__init__(self)
+
+        self.listTelId = listTelId
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.working.emit(self.listTelId)

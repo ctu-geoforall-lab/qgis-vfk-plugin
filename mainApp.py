@@ -21,11 +21,12 @@
  ***************************************************************************/
 """
 # Import the PyQt, QGIS libraries and classes
-from re import search
 import os
 import time
+import sys
 from pathlib import Path
 from collections import OrderedDict
+from re import search
 
 from qgis.PyQt.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QProgressDialog, QToolBar, QActionGroup, QDockWidget, QToolButton, QMenu, QHBoxLayout, QPushButton, QLineEdit
 from qgis.PyQt.QtGui import QPalette, QDesktopServices
@@ -39,8 +40,10 @@ from osgeo import ogr, gdal
 
 from .ui_MainApp import Ui_MainApp
 from .searchFormController import *
-from .openThread import *
+from .openThread import ImportVfkThread, DownloadPosidentsThread
 from .applyChanges import *
+
+sys.path.insert(0, str(Path(__file__).parent)) # needed for pywsdp import
 
 class VFKError(Exception):
     pass
@@ -175,7 +178,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.settings.setValue(sender, os.path.dirname(loaded_file))
         elif self.__source_for_data == 'directory':
             loaded_dir = QFileDialog.getExistingDirectory(
-                self, u"Vyberte adresář s daty VFK", lastUsedDir
+                self, "Vyberte adresář s daty VFK", lastUsedDir
             )
             if not loaded_dir:
                 return
@@ -185,7 +188,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.settings.setValue(sender, loaded_dir)
         else:
             iface.messageBar().pushMessage(
-                'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical
+                'ERROR', 'Invalid data source ({})'.format(self.__source_for_data), level=Qgis.Critical, duration=10
             )
 
         self.loadVfkButton.setEnabled(True)
@@ -204,7 +207,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
     def latexExport(self):
         fileName, __ = QFileDialog.getSaveFileName(
-            self, u"Jméno exportovaného souboru", ".tex", "LaTeX (*.tex)")
+            self, "Jméno exportovaného souboru", ".tex", "LaTeX (*.tex)")
         if fileName:
             export_succesfull = self.vfkBrowser.exportDocument(
                 self.vfkBrowser.currentUrl(), fileName, self.vfkBrowser.ExportFormat.Latex)
@@ -213,13 +216,109 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
     def htmlExport(self):
         fileName, __ = QFileDialog.getSaveFileName(
-            self, u"Jméno exportovaného souboru", ".html", "HTML (*.html)")
+            self, "Jméno exportovaného souboru", ".html", "HTML (*.html)")
         if fileName:
             export_succesfull = self.vfkBrowser.exportDocument(
                 self.vfkBrowser.currentUrl(), fileName, self.vfkBrowser.ExportFormat.Html)
             if export_succesfull:
                 self.succesfullExport("HTML")
 
+    def downloadPosidents(self):
+        if not self.wsdpUsername.text() or not self.wsdpPassword.text():
+            iface.messageBar().pushMessage(
+                "Stažení posidentů přerušeno", "Vyplňte přístupové údaje", level=Qgis.Critical, duration=10)
+            return
+            
+        # listParId = []
+        listTelId = []
+        for layer in self.__mLoadedLayers:
+            id = self.__mLoadedLayers[layer]
+            vectorLayer = QgsProject.instance().mapLayer(id)
+            features = vectorLayer.selectedFeatures()
+            for f in features:
+                # listParId.append(f["ID"])
+                listTelId.append(f["TEL_ID"])
+
+        if not self.__mLoadedLayers or not listTelId:
+            iface.messageBar().pushMessage(
+                "Stažení posidentů přerušeno", "Není vybrána žádná parcela ani budova", level=Qgis.Warning, duration=10)
+            return
+
+        self.wsdpStatus.setText(
+            "Stahuji posidenty pro vybrané parcely a budovy (počet: {})...".format(len(features)))
+        
+        self.downloadPosidentsThread = DownloadPosidentsThread(listTelId)
+        self.downloadPosidentsThread.working.connect(self.runDownloadingPosidents)
+        if not self.downloadPosidentsThread.isRunning():
+            self.downloadPosidentsThread.start()
+
+    def runDownloadingPosidents(self, listTelId):
+        from pywsdp.modules import CtiOS
+        from pywsdp.base.exceptions import WSDPError, WSDPRequestError
+
+        ctios = CtiOS([
+            self.wsdpUsername.text(),
+            self.wsdpPassword.text(),
+        ], trial=self.wsdpTrial.isChecked())
+        self.wsdpProgressBar.setValue(0)
+
+        #ids = ctiosInterface.set_ids_from_db(db_path, "SELECT vla.opsub_id from vla,par where par.ID in ("+listParID+") and vla.TEL_ID=par.TEL_ID")
+        try:
+            sql = "SELECT * FROM opsub WHERE ID IN (SELECT opsub_id FROM vla WHERE tel_id IN ({}))".format(','.join(map(str, listTelId)))
+            parameters_ctiOS_db = ctios.nacti_identifikatory_z_db(
+                gdal.GetConfigOption('OGR_VFK_DB_NAME'),
+                sql
+            )
+        except WSDPError as e:
+            QgsMessageLog.logMessage("DB:{} SQL: {}".format(gdal.GetConfigOption('OGR_VFK_DB_NAME'), sql),
+                                     level=Qgis.Info)                           
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Vstupní VFK data neobsahující pro vybrané prvky informace o posidentech. {}'.format(e),
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
+            return
+
+        try:
+            response, response_errors = ctios.posli_pozadavek(parameters_ctiOS_db)
+            self.wsdpStatus.setText(
+                "Počet úspěšně zpracovaných posidentů: {}/{} {}".format(
+                    len(response.keys()) - len(response_errors.keys()),
+                    len(response.keys()),
+                    '(více v zprávách výpisů)' if response_errors else ''))
+            self.wsdpProgressBar.setValue(100)
+            # QgsMessageLog.logMessage("Stažené informace o posidentech: {}".format(response), level=Qgis.Info)
+            if response_errors:
+                QgsMessageLog.logMessage("Chybné informace o posidentech: {}".format(response), level=Qgis.Warning)
+        except WSDPRequestError as e:
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Nelze odeslat WSDP požadavek. {}'.format(e),
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
+            return
+
+        try:
+            ctios.uloz_vystup_aktualizuj_db(
+                response
+            )
+        except WSDPError as e:
+            iface.messageBar().pushMessage(
+                'ERROR',
+                'Nepodařilo se aktualizovat interní DB. {}'.format(e),
+                level=Qgis.Critical, duration=10)
+            self.wsdpStatus.setText('Nelze získat posidenty')
+
+    def setWSDPTrial(self):
+        if self.wsdpTrial.isChecked():
+            username = "WSTEST"
+            password = "WSHESLO"
+        else:
+            username = password = ""
+            
+        self.wsdpUsername.setText(username)
+        self.wsdpPassword.setText(password)
+        
     def setSelectionChangedConnected(self, connected):
         """
 
@@ -250,7 +349,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             fIds = self.__search(vectorLayer, searchString, error)
             if error:
                 iface.messageBar().pushMessage(
-                    'ERROR', 'In showInMap: {}'.format(error), level=Qgis.Critical
+                    'ERROR', 'In showInMap: {}'.format(error), level=Qgis.Critical, duration=10
                 )
                 return
             else:
@@ -288,7 +387,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             # check if there were errors during evaluating
             if search.hasEvalError():
                 iface.messageBar().pushMessage(
-                    'ERROR', 'Evaluate error: {}'.format(error), level=Qgis.Critical
+                    'ERROR', 'Evaluate error: {}'.format(error), level=Qgis.Critical, duration=10
                 )
                 break
 
@@ -328,7 +427,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
                 num_input_db += 1
             if num_input_db > 1:
                 iface.messageBar().pushMessage(
-                    'ERROR', 'Only one input SQLite database can be defined', level=Qgis.Critical
+                    'ERROR', 'Only one input SQLite database can be defined', level=Qgis.Critical, duration=10
                 )
                 return
             if num_input_db < 1:
@@ -351,7 +450,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         QgsApplication.processEvents()
 
-        self.importThread = OpenThread(self.__inputFilePath)
+        self.importThread = ImportVfkThread(self.__inputFilePath)
         self.importThread.working.connect(self.runLoadingLayer)
         if not self.importThread.isRunning():
             self.importThread.start()
@@ -413,7 +512,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             self.__unLoadVfkLayer('BUD')
 
         self.labelLoading.setText(
-            'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n Cesta: {}'.format(
+            'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n{}'.format(
             gdal.GetConfigOption('OGR_VFK_DB_NAME')))
 
     def vfkFileLineEdit_textChanged(self, arg1):
@@ -439,7 +538,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         :type vfkLayerName: str
         :return:
         """
-        # QgsMessageLog.logMessage(u"(VFK) Loading vfk layer {}".format(vfkLayerName))
+        # QgsMessageLog.logMessage("VFK) Loading vfk layer {}".format(vfkLayerName))
         if vfkLayerName in self.__mLoadedLayers:
             # QgsMessageLog.logMessage(
             #     "(VFK) Vfk layer {} is already loaded".format(vfkLayerName)
@@ -450,7 +549,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         layer = QgsVectorLayer(composedURI, vfkLayerName, "ogr")
         if not layer.isValid():
             iface.messageBar().pushMessage(
-                'ERROR', "Layer failed to load!", level=Qgis.Critical
+                'ERROR', "Layer failed to load!", level=Qgis.Critical, duration=10
             )
 
         self.__mLoadedLayers[vfkLayerName] = layer.id()
@@ -496,6 +595,10 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         errorMsg, resultFlag = layer.loadNamedStyle(symbologyFile)
 
+        # layer.startEditing()
+        # layer.addAttribute(QgsField("ListVlastnictvi",QVariant.Int))
+        # layer.commitChanges()
+        
         if not resultFlag:
             raise VFKWarning('Load style: {}'.format(errorMsg))
 
@@ -555,7 +658,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         if not self.__mOgrDataSource:
             raise VFKError(
-                u"Nelze otevřít VFK soubor '{}' jako platný OGR datasource.".format(fileName))
+                "Nelze otevřít VFK soubor '{}' jako platný OGR datasource.".format(fileName))
 
         layerCount = self.__mOgrDataSource.GetLayerCount()
 
@@ -663,11 +766,11 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.searchFormMainControls.searchForms.setCurrentIndex(searchType)
 
     def switchToChanges(self):
-        """
-
-        """
         self.actionZpracujZmeny.trigger()
 
+    def switchToDownloadPosidents(self):
+        self.actionDownloadPosidents.trigger()
+        
     def succesfullExport(self, export_format):
         """
 
@@ -695,7 +798,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             iface.messageBar().pushMessage(
                 'Upozornění', "Byl dosažen maximální počet ({}) VFK souborů pro zpracování. "
                 "Načítání dalších souborů není povoleno!".format(numLineEdits),
-                level=Qgis.Warning)
+                level=Qgis.Warning, duration=10)
             return
 
         # update label
@@ -892,6 +995,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         actionGroup = QActionGroup(self)
         actionGroup.addAction(self.actionImport)
+        actionGroup.addAction(self.actionDownloadPosidents)        
         actionGroup.addAction(self.actionVyhledavani)
         actionGroup.addAction(self.actionZpracujZmeny)
 
@@ -899,15 +1003,17 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.signalMapper = QSignalMapper(self)
 
         self.actionImport.triggered.connect(self.signalMapper.map)
+        self.actionDownloadPosidents.triggered.connect(self.signalMapper.map)        
         self.actionVyhledavani.triggered.connect(self.signalMapper.map)
         self.actionZpracujZmeny.triggered.connect(self.signalMapper.map)
 
         # setMapping on each button to the QStackedWidget index we'd like to
         # switch to
         self.signalMapper.setMapping(self.actionImport, 0)
-        self.signalMapper.setMapping(self.actionVyhledavani, 2)
         self.signalMapper.setMapping(self.actionZpracujZmeny, 1)
-
+        self.signalMapper.setMapping(self.actionVyhledavani, 2)
+        self.signalMapper.setMapping(self.actionDownloadPosidents, 3)
+        
         # connect mapper to stackedWidget
         self.signalMapper.mapped.connect(self.stackedWidget.setCurrentIndex)
         
@@ -915,6 +1021,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.vfkBrowser.switchToPanelImport.connect(self.switchToImport)
         self.vfkBrowser.switchToPanelSearch.connect(self.switchToSearch)
         self.vfkBrowser.switchToPanelChanges.connect(self.switchToChanges)
+        self.vfkBrowser.switchToPanelChanges.connect(self.switchToDownloadPosidents)
 
         # Browser toolbar
         # ---------------
@@ -951,6 +1058,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
 
         # add actions to toolbar icons
         self.__mBrowserToolbar.addAction(self.actionImport)
+        self.__mBrowserToolbar.addAction(self.actionDownloadPosidents)       
         self.__mBrowserToolbar.addAction(self.actionVyhledavani)
         self.__mBrowserToolbar.addAction(self.actionZpracujZmeny)
         self.__mBrowserToolbar.addSeparator()
@@ -1002,3 +1110,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         # connect radio boxes
         self.rb_file.clicked.connect(self.radioButtonValue)
         self.rb_directory.clicked.connect(self.radioButtonValue)
+
+        # posidents widget
+        self.wsdpQueryButton.clicked.connect(self.downloadPosidents)
+        self.wsdpTrial.stateChanged.connect(self.setWSDPTrial)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>918</width>
-    <height>332</height>
+    <width>975</width>
+    <height>430</height>
    </rect>
   </property>
   <property name="layoutDirection">
@@ -25,7 +25,7 @@
       </property>
       <widget class="QStackedWidget" name="stackedWidget">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>2</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -37,6 +37,9 @@
         <layout class="QGridLayout" name="gridLayout_10">
          <item row="0" column="0">
           <widget class="QScrollArea" name="scrollArea_5">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -45,8 +48,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>414</width>
-              <height>291</height>
+              <width>454</width>
+              <height>371</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_11">
@@ -478,7 +481,7 @@
          <item>
           <widget class="QStackedWidget" name="searchForms">
            <property name="currentIndex">
-            <number>0</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="page">
             <layout class="QGridLayout" name="gridLayout">
@@ -612,10 +615,144 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="posidentPage">
+        <layout class="QGridLayout" name="gridLayout_10">
+         <item row="0" column="0">
+          <widget class="QScrollArea" name="scrollArea_7">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_7">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>454</width>
+              <height>371</height>
+             </rect>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <widget class="QWidget" name="widget_4" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_19">
+                <item row="4" column="0" colspan="2">
+                 <spacer name="verticalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>119</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="6" column="0" colspan="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_7">
+                  <item>
+                   <widget class="QProgressBar" name="wsdpProgressBar">
+                    <property name="value">
+                     <number>0</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="wsdpQueryButton">
+                    <property name="text">
+                     <string>Získej posidenty</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="0" column="0" colspan="2">
+                 <layout class="QGridLayout" name="gridLayout_18">
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="wsdpUsername">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QLabel" name="label_7">
+                    <property name="text">
+                     <string>Uživatelské jméno:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QgsPasswordLineEdit" name="wsdpPassword">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QLabel" name="label_8">
+                    <property name="text">
+                     <string>Heslo:</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="wsdpStatus">
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QCheckBox" name="wsdpTrial">
+                  <property name="text">
+                   <string>Přístup na zkoušku</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QWidget" name="widget_2" native="true">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>3</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -650,6 +787,9 @@
   </action>
   <action name="actionImport">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="icon">
@@ -787,6 +927,21 @@
     <string>Ctrl+H</string>
    </property>
   </action>
+  <action name="actionDownloadPosidents">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/downloadAllPosidents.png</normaloff>:/downloadAllPosidents.png</iconset>
+   </property>
+   <property name="text">
+    <string>downloadPosidents</string>
+   </property>
+   <property name="toolTip">
+    <string>Stáhnout posidenty pro vybrané budovy a parcely</string>
+   </property>
+  </action>
   <action name="actionZpracujZmeny">
    <property name="checkable">
     <bool>true</bool>
@@ -808,6 +963,11 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
+  <customwidget>
+   <class>QgsPasswordLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qgspasswordlineedit.h</header>
+  </customwidget>
   <customwidget>
    <class>VfkTextBrowser</class>
    <extends>QTextBrowser</extends>

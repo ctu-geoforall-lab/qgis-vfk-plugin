@@ -61,5 +61,7 @@ docs/_build/
 target/
 
 ###
-sample_data/Export_vse.vfk
-sample_data/Export_vse_stav.db
+sample_data/*.db
+pywsdp/
+zip_build/
+*~
