@@ -5,7 +5,6 @@ Uživatelské rozhraní
 ====================
 
 .. image:: images/vfk.png
-   :width: 600
 
 
 Import VFK souboru
