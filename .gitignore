@@ -70,3 +70,4 @@ zeep/
 isodate/
 platformdirs/
 requests_toolbelt
+requests_file.py
