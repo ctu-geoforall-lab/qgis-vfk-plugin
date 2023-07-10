@@ -1,16 +1,20 @@
-#!/bin/bash
+#!/bin/bash -e
 
-pip3 install -r scripts/requirements.txt
+VENV=/tmp/qgis-vfk-plugin
+python3 -m venv $VENV
+source $VENV/bin/activate
 
-rm -rf pywsdp zeep requests_file.py isodate platformdirs requests_toolbelt
-pip3 install pywsdp zeep requests-file isodate platformdirs requests-toolbelt \
-     -t . --no-deps --upgrade
-# fix pywsdp (remove when 2.1.1 will be released)
-cp ../pywsdp/pywsdp/base/__init__.py pywsdp/base/__init__.py
+pip3 install -r scripts/requirements.txt 
+
+LIB=$VENV/lib/python3.11/site-packages/
+cp -r $LIB/pywsdp $LIB/zeep $LIB/isodate $LIB/platformdirs $LIB/requests_toolbelt .
 find pywsdp zeep isodate platformdirs requests_toolbelt \
      -name __pycache__ | xargs rm -rf
 
 pb_tool zip
+
+deactivate
+rm -rf $VENV
 
 exit 0
  
