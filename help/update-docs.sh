@@ -3,7 +3,7 @@
 git checkout gh-pages
 rm -rf *
 touch .nojekyll
-git checkout master help
+git checkout release-3_0 help
 cd help
 make clean
 make html
@@ -14,4 +14,4 @@ git add -A
 git commit -m "publishing updated docs..."
 git push origin gh-pages
 # switch back
-git checkout master
+git checkout release-3_0
