@@ -1402,8 +1402,7 @@ class DocumentBuilder(object):
         self.__mDocument.beginItemize()      
         link = self.__mDocument.link(
             "switchPanel?panel=search&type=0", "oprávněné osoby")
-        text = "{} (tato možnost je momentálně nedostupná)".format(link)
-        self.__mDocument.item(text)
+        self.__mDocument.item(link)
         link = self.__mDocument.link(
             "switchPanel?panel=search&type=1", "parcely")
         self.__mDocument.item(link)
