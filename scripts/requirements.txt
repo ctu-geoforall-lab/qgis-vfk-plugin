@@ -1,2 +1,3 @@
 pywsdp
 requests_file
+attr
