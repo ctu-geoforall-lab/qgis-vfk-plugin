@@ -7,6 +7,7 @@ from builtins import object
 from qgis.PyQt.QtCore import QObject
 
 from qgis.utils import iface
+from qgis.core import QgsMessageLog, Qgis
 
 from .vfkDocument import *
 from .vfkTableModel import *
@@ -914,11 +915,16 @@ class DocumentBuilder(object):
             ids.append(sousedniModel.value(i, "hp_par_id_2"))
 
         ids = list(set(ids))
-        ids.remove(id)
-
-        link = self.__mDocument.link(
-            "showText?page=seznam&type=id&parcely={}".format(",".join(ids)),
-                                     "Sousední parcely")
+        if len(ids) < 1:
+            QgsMessageLog.logMessage("Nelze zjistit sousední parcely pro parcelu {}".format(
+                self.makeParcelniCislo(model, 0, return_link=False)),
+                                     "VFK Plugin", level=Qgis.Warning)
+            link = "Sousední parcely: nelze zjistit"
+        else:
+            ids.remove(id)
+            link = self.__mDocument.link(
+                "showText?page=seznam&type=id&parcely={}".format(",".join(ids)),
+                "Sousední parcely")
 
         self.__mDocument.paragraph(link)
         opsubIds = []
@@ -1583,7 +1589,7 @@ class DocumentBuilder(object):
 
         return identifikator
 
-    def makeParcelniCislo(self, model, row):
+    def makeParcelniCislo(self, model, row, return_link=True):
         """
 
         :param model: VfkTableModel
@@ -1598,15 +1604,17 @@ class DocumentBuilder(object):
 
         st = ''
         if not model.value(row, "drupoz_stavebni_parcela"):
-            iface.messageBar().pushWarning('ERROR',
-                "Neni k dispozici tabulka drupoz_stavebni_parcela"
-            )
+            QgsMessageLog.logMessage("Nelze zjistit druh pozemku pro parcelu {}".format(cislo),
+                                     "VFK Plugin", level=Qgis.Warning)
         if self.__mDveRadyCislovani and Domains.anoNe(model.value(row, "drupoz_stavebni_parcela")):
             st = "st."
 
-        link = self.__mDocument.link(
-            "showText?page=par&id={}".format(model.value(row, "par_id")), cislo)
-        return "{} {}".format(st, link)
+        if return_link:
+            pc = self.__mDocument.link(
+                "showText?page=par&id={}".format(model.value(row, "par_id")), cislo)
+        else:
+            pc = str(cislo)
+        return "{} {}".format(st, pc)
 
     def makeDomovniCislo(self, model, row):
         """

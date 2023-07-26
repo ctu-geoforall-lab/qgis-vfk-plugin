@@ -603,8 +603,9 @@ class VfkTableModel(QSqlQueryModel):
 
         query = "SELECT DISTINCT par.id par_id " \
                 "FROM par " \
-                "JOIN drupoz ON par.drupoz_kod = drupoz.kod " \
+                "LEFT JOIN drupoz ON par.drupoz_kod = drupoz.kod " \
                 "{} {};".format(join, where)
+
         return self.__evaluate(query)
 
     def searchBud(self, domovniCislo, naParcele, zpusobVyuzitiKod, lv):
