@@ -228,15 +228,15 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             iface.messageBar().pushMessage(
                 "Stažení posidentů přerušeno", "Vyplňte přístupové údaje", level=Qgis.Critical, duration=10)
             return
-            
-        # listParId = []
+
+        self.loadVfkLayersFromSelected()
+
         listTelId = []
         for layer in self.__mLoadedLayers:
             id = self.__mLoadedLayers[layer]
             vectorLayer = QgsProject.instance().mapLayer(id)
             features = vectorLayer.selectedFeatures()
             for f in features:
-                # listParId.append(f["ID"])
                 listTelId.append(f["TEL_ID"])
 
         if not self.__mLoadedLayers or not listTelId:
@@ -602,6 +602,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         if self.__mOgrDataSource:
             self.__mOgrDataSource.Destroy()
             self.__mOgrDataSource = None
+        gdal.SetConfigOption('OGR_VFK_DB_NAME', self.__mDataSourceName)
         self.__mOgrDataSource = ogr.Open(self.__mDataSourceName, 0)
 
         self.__openDatabase(self.__mDataSourceName)
