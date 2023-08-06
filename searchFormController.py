@@ -39,12 +39,12 @@ class SearchFormController(QObject):
         budovy = None
         jednotky = None
 
-    class MainControls(object):
+    class MainControls:
         formCombobox = None
         searchForms = None
         searchButton = None
 
-    class Form(object):
+    class Form:
         Vlastnici = 0
         Parcely = 1
         Budovy = 2
@@ -73,17 +73,17 @@ class SearchFormController(QObject):
         self.__mZpusobVyuzitiBudovy = ''
         self.__mZpusobVyuzitiJednotek = ''
 
-        self.__controls.formCombobox.addItem(u"vlastníky", self.Form.Vlastnici)
-        self.__controls.formCombobox.addItem(u"parcely", self.Form.Parcely)
-        self.__controls.formCombobox.addItem(u"budovy", self.Form.Budovy)
-        self.__controls.formCombobox.addItem(u"jednotky", self.Form.Jednotky)
+        self.__controls.formCombobox.addItem("vlastníky", self.Form.Vlastnici)
+        self.__controls.formCombobox.addItem("parcely", self.Form.Parcely)
+        self.__controls.formCombobox.addItem("budovy", self.Form.Budovy)
+        self.__controls.formCombobox.addItem("jednotky", self.Form.Jednotky)
 		
         self.__controls.formCombobox.activated.connect(self.__controls.searchForms.setCurrentIndex)
 		
         self.__controls.searchButton.clicked.connect(self.search)
 
         self.__controls.searchForms.setCurrentIndex(0)
-        self.__controls.searchButton.setEnabled(False)
+        # self.__controls.searchButton.setEnabled(False)
 
     def setConnectionName(self, connectionName):
         """
@@ -101,13 +101,15 @@ class SearchFormController(QObject):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
 
-        if int(self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())) == self.Form.Parcely:
+        page_idx = self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())
+                                                    
+        if page_idx == self.Form.Parcely:
             self.__searchParcely()
-        elif int(self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())) == self.Form.Budovy:
+        elif page_idx == self.Form.Budovy:
             self.__searchBudovy()
-        elif int(self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())) == self.Form.Jednotky:
+        elif page_idx == self.Form.Jednotky:
             self.__searchJednotky()
-        elif int(self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())) == self.Form.Vlastnici:
+        elif page_idx == self.Form.Vlastnici:
             self.__searchVlastnici()
         else:
             qDebug("Neplatna hodnota v SearchComboBoxu!!!")
@@ -125,7 +127,7 @@ class SearchFormController(QObject):
         opo = self.__forms.vlastnici.isOpo()
         ofo = self.__forms.vlastnici.isOfo()
 
-        url = QUrl(u"showText?page=search&type=vlastnici&jmeno={}&rcIco={}&sjm={}&opo={}&ofo={}&lv={}"
+        url = QUrl("showText?page=search&type=vlastnici&jmeno={}&rcIco={}&sjm={}&opo={}&ofo={}&lv={}"
                    .format(jmeno, rcIco, 1 if sjm else 0, 1 if opo else 0, 1 if ofo else 0, lv))
         self.actionTriggered.emit(url)
 
@@ -138,7 +140,7 @@ class SearchFormController(QObject):
         druh = self.__forms.parcely.druhPozemkuKod()
         lv = self.__forms.parcely.lv()
 
-        url = QUrl(u"showText?page=search&type=parcely&parcelniCislo={}&typ={}&druh={}&lv={}"
+        url = QUrl("showText?page=search&type=parcely&parcelniCislo={}&typ={}&druh={}&lv={}"
                    .format(parcelniCislo, typ, druh, lv))
         self.actionTriggered.emit(url)
 
@@ -151,7 +153,7 @@ class SearchFormController(QObject):
         zpusobVyuziti = self.__forms.budovy.zpusobVyuzitiKod()
         lv = self.__forms.budovy.lv()
 
-        url = QUrl(u"showText?page=search&type=budovy&domovniCislo={}&naParcele={}&zpusobVyuziti={}&lv={}"
+        url = QUrl("showText?page=search&type=budovy&domovniCislo={}&naParcele={}&zpusobVyuziti={}&lv={}"
                    .format(domovniCislo, naParcele, zpusobVyuziti, lv))
         self.actionTriggered.emit(url)
 
@@ -165,7 +167,7 @@ class SearchFormController(QObject):
         zpusobVyuziti = self.__forms.jednotky.zpusobVyuzitiKod()
         lv = self.__forms.jednotky.lv()
 
-        url = QUrl(u"showText?page=search&type=jednotky&cisloJednotky={}&domovniCislo={}&naParcele={}&zpusobVyuziti={}&lv={}"
+        url = QUrl("showText?page=search&type=jednotky&cisloJednotky={}&domovniCislo={}&naParcele={}&zpusobVyuziti={}&lv={}"
                    .format(cisloJednotky, domovniCislo, naParcele, zpusobVyuziti, lv))
         self.actionTriggered.emit(url)
 
