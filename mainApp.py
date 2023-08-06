@@ -559,7 +559,13 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         except VFKWarning as e:
             QMessageBox.information(self, 'Load Style', e, QMessageBox.Ok)
 
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, False)
+        root = QgsProject.instance().layerTreeRoot()
+        group_name = Path(layer.source().split('|')[0]).stem
+        group = root.findGroup(group_name)
+        if group is None:
+            group = root.addGroup(group_name)
+        group.addLayer(layer)
 
     def loadVfkLayersFromSelected(self):
         dsn = None
