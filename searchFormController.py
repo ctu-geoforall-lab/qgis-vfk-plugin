@@ -61,8 +61,8 @@ class SearchFormController(QObject):
         :type parent: QObject
         :return:
         """
-
         QObject.__init__(self)
+        self.parent = parent
         self.__controls = mainControls
         self.__forms = searchForms
         self.__mConnectionName = ''
@@ -101,8 +101,10 @@ class SearchFormController(QObject):
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
 
+        self.parent.loadVfkLayersFromSelected()
+        
+        
         page_idx = self.__controls.formCombobox.itemData(self.__controls.formCombobox.currentIndex())
-                                                    
         if page_idx == self.Form.Parcely:
             self.__searchParcely()
         elif page_idx == self.Form.Budovy:
