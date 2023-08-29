@@ -228,15 +228,15 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
             iface.messageBar().pushMessage(
                 "Stažení posidentů přerušeno", "Vyplňte přístupové údaje", level=Qgis.Critical, duration=10)
             return
-            
-        # listParId = []
+
+        self.loadVfkLayersFromSelected()
+
         listTelId = []
         for layer in self.__mLoadedLayers:
             id = self.__mLoadedLayers[layer]
             vectorLayer = QgsProject.instance().mapLayer(id)
             features = vectorLayer.selectedFeatures()
             for f in features:
-                # listParId.append(f["ID"])
                 listTelId.append(f["TEL_ID"])
 
         if not self.__mLoadedLayers or not listTelId:
@@ -559,8 +559,57 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         except VFKWarning as e:
             QMessageBox.information(self, 'Load Style', e, QMessageBox.Ok)
 
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, False)
+        root = QgsProject.instance().layerTreeRoot()
+        group_name = Path(layer.source().split('|')[0]).stem
+        group = root.findGroup(group_name)
+        if group is None:
+            group = root.addGroup(group_name)
+        group.addLayer(layer)
 
+    def loadVfkLayersFromSelected(self):
+        dsn = None
+        for layer in iface.layerTreeView().selectedLayers():
+            if layer.storageType() != "SQLite":
+                continue
+            layer_name = layer.source().split('|')[1].lstrip('layername=')
+            if layer_name not in ('BUD', 'PAR'):
+                continue
+            if dsn is not None and dsn != layer.source().split('|')[0]:
+                iface.messageBar().pushMessage(
+                    "Lze dotazovat pouze jeden datový zdroj",
+                    "Ignoruji {} z důvodu jiného datového zdroje".format(layer.name()),
+                    level=Qgis.Info, duration=10)
+                continue
+
+            dsn = layer.source().split('|')[0]
+            if self.__mDataSourceName is not None and self.__mDataSourceName != dsn:                
+                self.__mLoadedLayers[layer_name] = layer.id()
+
+        if dsn is not None and self.__mDataSourceName == dsn:
+            # no change, skip re-loading data source
+            return
+        else:
+            self.__mDataSourceName = dsn
+        
+        if self.__mDataSourceName is None:
+                iface.messageBar().pushMessage(
+                    "Chyba",
+                    "Nelze se dotazovat. Není vybrán žádný validní zdroj VFK.",
+                    level=Qgis.Critical, duration=10)
+                return
+
+        if self.__mOgrDataSource:
+            self.__mOgrDataSource.Destroy()
+            self.__mOgrDataSource = None
+        gdal.SetConfigOption('OGR_VFK_DB_NAME', self.__mDataSourceName)
+        self.__mOgrDataSource = ogr.Open(self.__mDataSourceName, 0)
+
+        self.__openDatabase(self.__mDataSourceName)
+        self.vfkBrowser.setConnectionName(self.property("connectionName"))
+        self.__mSearchController.setConnectionName(
+            self.property("connectionName"))
+        
     def __unLoadVfkLayer(self, vfkLayerName):
         """
 
