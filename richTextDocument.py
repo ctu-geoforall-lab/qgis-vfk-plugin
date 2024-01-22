@@ -21,7 +21,6 @@
  *                                                                         *
  ***************************************************************************/
 """
-from __future__ import absolute_import
 from builtins import range
 from qgis.PyQt.QtCore import QRegExp
 from .vfkDocument import *
