@@ -501,15 +501,21 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         self.enableSearch.emit(True)
         self.__mLoadedLayers.clear()
 
+        layerActive = None
         if self.parCheckBox.isChecked():
-            self.__loadVfkLayer('PAR')
+            layerActive = self.__loadVfkLayer('PAR')
         else:
             self.__unLoadVfkLayer('PAR')
 
         if self.budCheckBox.isChecked():
-            self.__loadVfkLayer('BUD')
+            layer = self.__loadVfkLayer('BUD')
+            if layerActive is None:
+                layerActive = layer
         else:
             self.__unLoadVfkLayer('BUD')
+
+        if layerActive:
+            iface.setActiveLayer(layerActive)
 
         self.labelLoading.setText(
             'Načítání souborů VFK do interní SQLite databáze bylo dokončeno.\n{}'.format(
@@ -536,14 +542,14 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         """
 
         :type vfkLayerName: str
-        :return:
+        :return: QgsMapLayer
         """
         # QgsMessageLog.logMessage("VFK) Loading vfk layer {}".format(vfkLayerName))
         if vfkLayerName in self.__mLoadedLayers:
             # QgsMessageLog.logMessage(
             #     "(VFK) Vfk layer {} is already loaded".format(vfkLayerName)
             # )
-            return
+            return QgsProject.instance().mapLayer(self.__mLoadedLayers[vfkLayerName])
 
         composedURI = self.__mDataSourceName + "|layername=" + vfkLayerName
         layer = QgsVectorLayer(composedURI, vfkLayerName, "ogr")
@@ -566,6 +572,8 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         if group is None:
             group = root.addGroup(group_name)
         group.addLayer(layer)
+
+        return layer
 
     def loadVfkLayersFromSelected(self):
         dsn = None
@@ -595,7 +603,7 @@ class MainApp(QDockWidget, QMainWindow, Ui_MainApp):
         if self.__mDataSourceName is None:
                 iface.messageBar().pushMessage(
                     "Chyba",
-                    "Nelze se dotazovat. Není vybrán žádný validní zdroj VFK.",
+                    "Nelze se dotazovat. Aktuálně vybraná vrstva není validní zdroj VFK.",
                     level=Qgis.Critical, duration=10)
                 return
 
