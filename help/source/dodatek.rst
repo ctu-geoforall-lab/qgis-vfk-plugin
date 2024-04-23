@@ -6,7 +6,7 @@ Verze 1.x (C++):
 * Anna Petrášová (rozená Kratochvílová)
 * Václav Petráš
 
-Verze 2.x (Python):
+Verze 2.x a vyšší (Python):
 
 * Štěpán Bambula
 
@@ -18,12 +18,12 @@ Praze
 Vedoucí projektu: Martin Landa
 
 .. note:: První prototyp (verze 1.x) byl napsán v jazyce C++, ve verzi
-          2.x byl portován do jazyka Python. K datům v souborech
-          přistupuje plugin pomocí `knihovny GDAL
-          <http://freegis.fsv.cvut.cz/gwiki/VFK_/_GDAL>`__. Tato
-          dokumentace čerpá z `wiki projektu
-          <http://freegis.fsv.cvut.cz/gwiki/VFK_/_QGIS_plugin>`__, kde
-          najdete další informace především historického charakteru.
+          2.x byl portován do jazyka Python. K datům v souborech VFK
+          přistupuje zásuvný modul pomocí `knihovny GDAL
+          <https://gdal.org/drivers/vector/vfk.html>`__.  Informace o
+          posidentech získává pomocí knihovny `PyWSDP
+          <https://ctu-geoforall-lab.github.io/pywsdp/>`__.
+
 
 Licence
 ^^^^^^^
