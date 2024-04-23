@@ -2,22 +2,19 @@
 
 <!doctype html>
 
-<html lang="cs">
+<html lang="cs" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK &#8212; Dokumentace pro QGIS VFK Plugin 3.0</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css" />
+    <title>Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK &#8212; Dokumentace pro QGIS VFK Plugin 3.2</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css?v=532c1bf3" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/translations.js"></script>
+    <script src="_static/documentation_options.js?v=4139d788"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/translations.js?v=0275affc"></script>
     <script src="_static/bizstyle.js"></script>
     <link rel="search" title="Vyhledávání" href="search.html" />
     <link rel="next" title="Návod k použití" href="popis.html" />
@@ -32,7 +29,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="popis.html" title="Návod k použití"
              accesskey="N">další</a></li>
-        <li class="nav-item nav-item-0"><a href="#">Dokumentace pro QGIS VFK Plugin 3.0</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Dokumentace pro QGIS VFK Plugin 3.2</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK</a></li> 
       </ul>
     </div>  
@@ -43,17 +40,22 @@
           <div class="body" role="main">
             
   <section id="zasuvny-modul-qgis-pro-praci-s-katastralnimi-daty-ve-formatu-vfk">
-<h1>Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK<a class="headerlink" href="#zasuvny-modul-qgis-pro-praci-s-katastralnimi-daty-ve-formatu-vfk" title="Permalink to this heading">¶</a></h1>
-<p>QGIS VFK Plugin pracuje s daty českého katastru nemovitostí a to v takzvaném <strong>výměnném formátu katastru</strong> označovaném <strong>VFK</strong> (<a class="reference external" href="https://www.cuzk.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Vymenny-format-KN.aspx">Výměnný formát KN</a>).
-Plugin umožňuje vyhledávání, zobrazování a export informací vedených v
-katastru nemovitostí.</p>
+<h1>Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK<a class="headerlink" href="#zasuvny-modul-qgis-pro-praci-s-katastralnimi-daty-ve-formatu-vfk" title="Link to this heading">¶</a></h1>
+<p>QGIS VFK Plugin pracuje s daty českého katastru nemovitostí a to v
+takzvaném <strong>výměnném formátu katastru</strong> označovaném <strong>VFK</strong> (<a class="reference external" href="https://www.cuzk.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Vymenny-format-KN.aspx">Výměnný
+formát KN</a>).
+Zásuvný modul umožňuje vyhledávání, zobrazování a export informací
+vedených v katastru nemovitostí.</p>
 <img alt="_images/plugin_intro.png" src="_images/plugin_intro.png" />
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="popis.html">Návod k použití</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="popis.html#uzivatelske-rozhrani">Uživatelské rozhraní</a></li>
 <li class="toctree-l2"><a class="reference internal" href="popis.html#import-vfk-souboru">Import VFK souboru</a></li>
-<li class="toctree-l2"><a class="reference internal" href="popis.html#prohlizeni-dat">Prohlížení dat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="popis.html#prohlizeni-dat">Prohlížení dat</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="popis.html#ziskani-informaci-o-vlastnicich">Získaní informací o vlastnících</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="popis.html#export-dat">Export dat</a></li>
 </ul>
 </li>
@@ -108,13 +110,13 @@ katastru nemovitostí.</p>
         <li class="right" style="margin-right: 10px">
           <a href="popis.html" title="Návod k použití"
              >další</a></li>
-        <li class="nav-item nav-item-0"><a href="#">Dokumentace pro QGIS VFK Plugin 3.0</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Dokumentace pro QGIS VFK Plugin 3.2</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016-2023, CTU GeoForAll Lab.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Veškerá práva vyhrazena 2016-2024, CTU GeoForAll Lab.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>

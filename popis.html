@@ -2,22 +2,19 @@
 
 <!doctype html>
 
-<html lang="cs">
+<html lang="cs" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Návod k použití &#8212; Dokumentace pro QGIS VFK Plugin 3.0</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css" />
+    <title>Návod k použití &#8212; Dokumentace pro QGIS VFK Plugin 3.2</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css?v=532c1bf3" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/translations.js"></script>
+    <script src="_static/documentation_options.js?v=4139d788"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/translations.js?v=0275affc"></script>
     <script src="_static/bizstyle.js"></script>
     <link rel="search" title="Vyhledávání" href="search.html" />
     <link rel="next" title="Autoři" href="dodatek.html" />
@@ -36,7 +33,7 @@
         <li class="right" >
           <a href="index.html" title="Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK"
              accesskey="P">předchozí</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Dokumentace pro QGIS VFK Plugin 3.0</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Dokumentace pro QGIS VFK Plugin 3.2</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Návod k použití</a></li> 
       </ul>
     </div>  
@@ -47,13 +44,13 @@
           <div class="body" role="main">
             
   <section id="navod-k-pouziti">
-<h1>Návod k použití<a class="headerlink" href="#navod-k-pouziti" title="Permalink to this heading">¶</a></h1>
+<h1>Návod k použití<a class="headerlink" href="#navod-k-pouziti" title="Link to this heading">¶</a></h1>
 <section id="uzivatelske-rozhrani">
-<h2>Uživatelské rozhraní<a class="headerlink" href="#uzivatelske-rozhrani" title="Permalink to this heading">¶</a></h2>
+<h2>Uživatelské rozhraní<a class="headerlink" href="#uzivatelske-rozhrani" title="Link to this heading">¶</a></h2>
 <img alt="_images/vfk.png" src="_images/vfk.png" />
 </section>
 <section id="import-vfk-souboru">
-<h2>Import VFK souboru<a class="headerlink" href="#import-vfk-souboru" title="Permalink to this heading">¶</a></h2>
+<h2>Import VFK souboru<a class="headerlink" href="#import-vfk-souboru" title="Link to this heading">¶</a></h2>
 <p>Při importu dat nejdříve vyberte soubor ve formátu VFK a následně
 zaškrtněte vrstvy, které chcete importovat - ve výchozím nastaveni jde
 o <em>Parcely</em> (PAR) a <em>Budovy</em> (BUD). Můžete zvolit obě, jednu z nich nebo
@@ -61,9 +58,18 @@ o <em>Parcely</em> (PAR) a <em>Budovy</em> (BUD). Můžete zvolit obě, jednu z 
 tedy možné vyhledávat informace, ale nebude možná interakce s
 mapou. Nakonec klikněte na tlačítko <code class="docutils literal notranslate"><span class="pre">Načíst</span></code>.</p>
 <img alt="_images/vfk_import.png" src="_images/vfk_import.png" />
+<p>Rozhraní umožňuje načíst více VFK souborů najednou, případně všechny
+VFK soubory ze zvoleného adresáře.</p>
+<img alt="_images/vfk_import_multiple.png" src="_images/vfk_import_multiple.png" />
+<div class="admonition note">
+<p class="admonition-title">Poznámka</p>
+<p>Pokud načítáte více VFK souborů najednou, tak platí omezení na
+jedno katastrální území. Zásuvný modul v současné době neumožňuje
+pracovat s daty pokrývající více než jedno katastrální území.</p>
+</div>
 </section>
 <section id="prohlizeni-dat">
-<h2>Prohlížení dat<a class="headerlink" href="#prohlizeni-dat" title="Permalink to this heading">¶</a></h2>
+<h2>Prohlížení dat<a class="headerlink" href="#prohlizeni-dat" title="Link to this heading">¶</a></h2>
 <p>V panelu nástrojů stiskněte ikonu vyhledávání (dalekohled). V levé části
 prohlížeče VFK vyberte v rozbalovacím menu, co chcete vyhledat - vlastníky,
 parcely, budovy nebo jednotky. Po výběru možnosti, zadejte parametry vyhledávání
@@ -87,12 +93,12 @@ listovat tam a zpět, a proto není třeba opakovaně vykonávat dotazy do datab
 <figure class="align-center">
 <img alt="_images/vfk_link_info.png" src="_images/vfk_link_info.png" />
 </figure>
-<p>Pokud chcete zobrazit vyhledaná data v mapovém okně, klikněte na ikonu Označit
-aktuální budovy/parcely v mapě v panelu nástrojů.</p>
+<p>Pokud chcete zobrazit vyhledaná data v mapovém okně, klikněte na ikonu <code class="docutils literal notranslate"><span class="pre">Označit</span>
+<span class="pre">aktuální</span> <span class="pre">budovy/parcely</span> <span class="pre">v</span> <span class="pre">mapě</span></code> v panelu nástrojů.</p>
 <figure class="align-center">
 <img alt="_images/vfk_map.png" src="_images/vfk_map.png" />
 </figure>
-<p>Plugin umožňuje také otevření aplikace Nahlížení do katastru nemovitostí ve
+<p>Zásuvný modul umožňuje také otevření aplikace Nahlížení do katastru nemovitostí ve
 webovém prohlížeči pro aktuálně zobrazovanou nemovitost. Je zavolán ten webový
 prohlížeč, který máte nastavený jako výchozí ve vašem operačním systému.</p>
 <figure class="align-center">
@@ -101,9 +107,38 @@ prohlížeč, který máte nastavený jako výchozí ve vašem operačním syst�
 <figure class="align-center">
 <img alt="_images/cuzk.png" src="_images/cuzk.png" />
 </figure>
+<section id="ziskani-informaci-o-vlastnicich">
+<h3>Získaní informací o vlastnících<a class="headerlink" href="#ziskani-informaci-o-vlastnicich" title="Link to this heading">¶</a></h3>
+<p>Soubory VFK neobsahují informace o vlastnicích (oprávněných subjektech).</p>
+<figure class="align-center">
+<img alt="_images/vfk_search_owners.png" src="_images/vfk_search_owners.png" />
+</figure>
+<p>Tyto informace lze získat pomocí služby <a class="reference external" href="https://www.cuzk.cz/Aplikace-DP-do-KN/Aplikace-DP-do-KN/Webove-sluzby-dalkoveho-pristupu.aspx">ČÚZK WSDP</a>. Pro
+tento účel si nejprve <a class="reference external" href="https://www.cuzk.cz/Katastr-nemovitosti/Poskytovani-udaju-z-KN/Dalkovy-pristup/Zrizeni-uctu-dalkoveho-pristupu.aspx">zřiďte</a>
+uživatelský účet. V panelu nástrojů stiskněte ikonku <code class="docutils literal notranslate"><span class="pre">Stáhnout</span>
+<span class="pre">posidenty</span> <span class="pre">pro</span> <span class="pre">vybrané</span> <span class="pre">budovy</span> <span class="pre">a</span> <span class="pre">parcely</span></code> a vyplňte přihlašovací údaje.</p>
+<figure class="align-center">
+<img alt="_images/vfk_search_owners_wsdp.png" src="_images/vfk_search_owners_wsdp.png" />
+</figure>
+<p>Vyberte v mapovém okně budovy nebo parcely, pro které si přejete tyto
+informace získat a stiskněte tlačítko <code class="docutils literal notranslate"><span class="pre">Získej</span> <span class="pre">posidenty</span></code>.</p>
+<figure class="align-center">
+<img alt="_images/vfk_search_owners_select.png" src="_images/vfk_search_owners_select.png" />
+</figure>
+<div class="admonition note">
+<p class="admonition-title">Poznámka</p>
+<p>Zásuvný modul používá pro získání posidentů knihovnu
+<a class="reference external" href="https://ctu-geoforall-lab.github.io/pywsdp/">PyWSDP</a>.</p>
+</div>
+<p>Po přepnutí do panelu vyhledávání jsou informace o vlastnících již
+dostupné.</p>
+<figure class="align-center">
+<img alt="_images/vfk_search_owners_done.png" src="_images/vfk_search_owners_done.png" />
+</figure>
+</section>
 </section>
 <section id="export-dat">
-<h2>Export dat<a class="headerlink" href="#export-dat" title="Permalink to this heading">¶</a></h2>
+<h2>Export dat<a class="headerlink" href="#export-dat" title="Link to this heading">¶</a></h2>
 <p>Momentálně je možný export dat do formátů LaTeX (možno následně
 vytvořit PDF) a HTML (možno následně vytvořit ODF např. překopírováním
 HTML stránky z webového prohlížeče do <a class="reference external" href="https://www.libreoffice.org/">LibreOffice</a>).</p>
@@ -129,7 +164,10 @@ HTML stránky z webového prohlížeče do <a class="reference external" href="h
 <li><a class="reference internal" href="#">Návod k použití</a><ul>
 <li><a class="reference internal" href="#uzivatelske-rozhrani">Uživatelské rozhraní</a></li>
 <li><a class="reference internal" href="#import-vfk-souboru">Import VFK souboru</a></li>
-<li><a class="reference internal" href="#prohlizeni-dat">Prohlížení dat</a></li>
+<li><a class="reference internal" href="#prohlizeni-dat">Prohlížení dat</a><ul>
+<li><a class="reference internal" href="#ziskani-informaci-o-vlastnicich">Získaní informací o vlastnících</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#export-dat">Export dat</a></li>
 </ul>
 </li>
@@ -176,13 +214,13 @@ HTML stránky z webového prohlížeče do <a class="reference external" href="h
         <li class="right" >
           <a href="index.html" title="Zásuvný modul QGIS pro práci s katastrálními daty ve formátu VFK"
              >předchozí</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Dokumentace pro QGIS VFK Plugin 3.0</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Dokumentace pro QGIS VFK Plugin 3.2</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Návod k použití</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016-2023, CTU GeoForAll Lab.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Veškerá práva vyhrazena 2016-2024, CTU GeoForAll Lab.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
     </div>
   </body>
 </html>
